@@ -1,0 +1,128 @@
+/* Professional Sidenav styles - scoped under .custom-sidenav */
+.custom-sidenav {
+  background: linear-gradient(180deg, #0b3b82 0%, #072b57 100%) !important;
+  min-height: 100vh;
+  padding-top: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+.custom-sidenav .brand-link {
+  display: flex;
+  align-items: center;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.custom-sidenav .brand-image {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  margin-right: 12px;
+  object-fit: contain;
+  background: rgba(255,255,255,0.06);
+  padding: 6px;
+}
+
+.custom-sidenav .brand-text {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.2px;
+}
+
+.custom-sidenav .sidebar {
+  padding-top: 8px;
+}
+
+.custom-sidenav .user-panel {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.custom-sidenav .user-panel .image img {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.12);
+}
+
+.custom-sidenav .user-panel .info a {
+  color: #e6f0ff;
+  font-weight: 700;
+}
+
+.custom-sidenav .form-control-sidebar {
+  background: rgba(255,255,255,0.04) !important;
+  border: none !important;
+  color: #e6eef8 !important;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.custom-sidenav .nav-header {
+  color: #c3dbff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 10px 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.custom-sidenav .nav .nav-item .nav-link {
+  color: #e9f4ff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  transition: transform 140ms ease, background-color 140ms ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.custom-sidenav .nav .nav-item .nav-link .nav-icon {
+  color: #cfe5ff;
+  min-width: 22px;
+  font-size: 16px;
+}
+
+.custom-sidenav .nav .nav-item .nav-link:hover {
+  background: rgba(255,255,255,0.04);
+  transform: translateX(6px);
+  color: #fff;
+  text-decoration: none;
+}
+
+.custom-sidenav .nav .nav-item .nav-link.active {
+  background: linear-gradient(90deg,#2354a3 0%,#1e3a8a 100%);
+  box-shadow: inset 4px 0 0 rgba(255,255,255,0.06);
+  color: #fff;
+}
+
+/* Submenu items (appear after any .nav-header) */
+.custom-sidenav ul.nav > li.nav-header ~ li.nav-item .nav-link {
+  padding-left: 34px;
+  font-size: 0.95rem;
+  opacity: 0.97;
+}
+
+.custom-sidenav .nav .nav-item .nav-link p {
+  margin: 0;
+  font-weight: 600;
+  color: inherit;
+}
+
+.custom-sidenav .right.fas {
+  color: rgba(255,255,255,0.62);
+  font-size: 14px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 480px) {
+  .custom-sidenav .brand-text { font-size: 0.95rem; }
+  .custom-sidenav .brand-image { width: 36px; height: 36px; }
+  .custom-sidenav .nav .nav-item .nav-link { padding: 10px 12px; }
+}

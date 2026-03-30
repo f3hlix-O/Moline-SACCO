@@ -1,0 +1,7 @@
+/* Example CSS */
+.content-container {
+    display: flex; /* Use flexbox for alignment */
+    justify-content: flex-start; /* Align content to the left */
+    gap: 0; /* Remove spacing between child elements */
+  }
+  

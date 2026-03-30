@@ -1,0 +1,234 @@
+.signup-card-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.signup-card {
+    max-width: 500px; /* Adjust the max-width as needed */
+    margin: auto; /* Center horizontally */
+    border-radius: 10px; /* Add rounded corners */
+}
+
+.bg-body-tertiary {
+    background-color: #f8f9fa; /* Change background color as needed */
+    backdrop-filter: blur(30px); /* Add blur effect */
+}
+
+.shadow-5-strong {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); /* Add strong shadow */
+}
+/* Ensure input fields only have a bottom border */
+.custom-input {
+    border: none;
+    padding: 2px;
+    margin-bottom: 2px;
+    transition: border-bottom-color 0.3s;
+}
+
+.custom-input:focus {
+    outline: none;
+}
+
+/* Style for the placeholder */
+.custom-input::placeholder {
+    color: #aaa;
+    transition: opacity 0.3s;
+}
+
+.custom-input:focus::placeholder {
+    opacity: 0;
+}
+
+.form-outline .form-control {
+    border-radius: 5px;
+    padding: 10px;
+    width: 100%; /* Make input fields take full width */
+    padding-right: 2.75rem; /* reserve space for inline toggle */
+}
+
+.form-outline .form-label {
+    position: absolute;
+    top: -7px;
+    left: 10px;
+    background: #f8f9fa;
+    padding: 0 5px;
+    font-size: 0.85rem;
+}
+
+/* Adjust form-control class to remove additional borders */
+.form-control {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* Ensure label transitions smoothly when input is focused */
+.form-outline {
+    position: relative;
+    border-bottom: 1px solid #6791ee;
+}
+
+.form-outline input:focus + .form-label,
+.form-outline input:not(:placeholder-shown) + .form-label,
+.form-outline select:focus + .form-label,
+.form-outline select:valid + .form-label {
+    transform: translateY(-50%);
+    font-size: 0.75rem; /* Adjust font size as needed */
+    color: #6c757d; /* Adjust label color as needed */
+}
+
+/* Inline password visibility toggle placed at the right end of the input */
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 0 6px;
+    font-size: 1.05rem;
+    cursor: pointer;
+    z-index: 2;
+    color: #495057;
+}
+.password-toggle:focus {
+    outline: none;
+}
+
+/* --- Professional login styling (scoped to signup-card) --- */
+:root {
+    --brand: #0f172a;
+    --primary: #1e3a8a;
+    --accent: #3b82f6;
+    --muted: #6b7280;
+    --card-bg: #ffffff;
+    --input-border: #e6eef8;
+}
+
+/* page background and centering */
+.signup-card-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 48px 20px;
+    background: linear-gradient(180deg, #f7fbff 0%, #eef6ff 100%);
+}
+
+/* header/logo strip */
+.bg-image {
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 120px;
+    margin-bottom: -40px; /* overlap card for a modern look */
+    opacity: 0.96;
+}
+
+.signup-card {
+    max-width: 440px;
+    margin: 0 auto;
+    border-radius: 14px;
+    background: var(--card-bg);
+    box-shadow: 0 10px 30px rgba(16,24,40,0.08);
+    border: 1px solid rgba(30,58,90,0.04);
+}
+
+.card-body {
+    padding: 28px 26px;
+}
+
+.signup-card h2 {
+    color: var(--brand);
+    margin-bottom: 0.25rem;
+    font-weight: 700;
+    font-size: 1.35rem;
+}
+
+.signup-card p.text-muted {
+    color: var(--muted);
+    margin-bottom: 1rem;
+}
+
+/* inputs scoped inside the card keep app-wide styles intact elsewhere */
+.signup-card .form-control {
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: 12px 44px 12px 12px; /* right padding reserves space for inline toggle */
+    background: #fff;
+    transition: box-shadow 0.12s ease, border-color 0.12s ease;
+    box-shadow: none;
+}
+
+.signup-card .form-control:focus {
+    outline: none;
+    box-shadow: 0 8px 20px rgba(30,58,90,0.06);
+    border-color: var(--accent);
+}
+
+.signup-card .form-outline {
+    position: relative;
+    margin-bottom: 1rem;
+    border-bottom: none;
+}
+
+.signup-card .form-label {
+    position: absolute;
+    top: -9px;
+    left: 12px;
+    background: var(--card-bg);
+    padding: 0 6px;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.signup-card .form-outline input:focus + .form-label,
+.signup-card .form-outline input:not(:placeholder-shown) + .form-label,
+.signup-card .form-outline select:focus + .form-label,
+.signup-card .form-outline select:valid + .form-label {
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+/* refine password toggle appearance inside the card */
+.signup-card .password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 0 6px;
+    font-size: 1.05rem;
+    cursor: pointer;
+    z-index: 2;
+    color: var(--muted);
+}
+
+.signup-card .password-toggle:focus {
+    outline: none;
+}
+
+.signup-card .btn-primary {
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    box-shadow: 0 8px 24px rgba(59,130,246,0.12);
+    font-weight: 600;
+}
+
+.signup-card .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 38px rgba(59,130,246,0.18);
+}
+
+/* small screens */
+@media (max-width: 576px) {
+    .signup-card-container { padding: 22px 12px; }
+    .bg-image { height: 100px; margin-bottom: -34px; }
+    .signup-card { border-radius: 10px; }
+}

@@ -1,0 +1,80 @@
+/* ProfilePage styles: center profile content and style profile card */
+
+.content.content-wrapper {
+  background: #f5f7fb;
+  min-height: 100vh;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.emp-profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 20px;
+  min-height: calc(100vh - 120px);
+}
+
+.emp-profile .profile-info {
+  width: 100%;
+  max-width: 760px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px 28px;
+  box-shadow: 0 8px 30px rgba(2,6,23,0.06);
+  border: 1px solid rgba(20,30,60,0.04);
+}
+
+.emp-profile .profile-info .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.emp-profile .profile-info .col-md-6 {
+  display: flex;
+  align-items: center;
+}
+
+.emp-profile label {
+  font-weight: 700;
+  color: #0f1724;
+  margin-bottom: 0;
+  font-size: 0.95rem;
+}
+
+.emp-profile p {
+  margin: 0;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.emp-profile .form-control {
+  border-radius: 8px;
+  border: 1px solid rgba(15,23,36,0.08);
+  box-shadow: none;
+  padding: 8px 10px;
+}
+
+/* Center action buttons below the card */
+.emp-profile .btn {
+  margin-top: 16px;
+}
+
+/* Ensure buttons are centered as a group */
+.emp-profile {
+  gap: 8px;
+}
+
+@media (max-width: 576px) {
+  .emp-profile .profile-info {
+    padding: 16px;
+  }
+  .emp-profile .profile-info .row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

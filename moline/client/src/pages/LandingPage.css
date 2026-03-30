@@ -1,0 +1,129 @@
+/* LandingPage.css — professional, responsive landing page styles */
+
+:root{
+  --moline-primary: #1e3a8a;
+  --moline-accent: #10b981;
+  --muted: #6b7280;
+  --surface: #f8fafc;
+  --card-border: #e6eef8;
+}
+
+.landing-page{
+  font-family: Inter, 'Segoe UI', Tahoma, Arial, sans-serif;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* HERO */
+.landing-header{
+  position: relative;
+  padding: 4.5rem 0;
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.landing-header::after{
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6,10,40,0.42), rgba(6,10,40,0.55));
+  z-index: 1;
+}
+
+.landing-header .container{ position: relative; z-index: 2; }
+.landing-header .display-5{
+  font-size: 2.6rem;
+  line-height: 1.05;
+  font-weight: 700;
+  text-shadow: 0 8px 30px rgba(2,6,23,0.45);
+  margin-bottom: 0.6rem;
+}
+
+.landing-header .lead{
+  color: rgba(255,255,255,0.92);
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+}
+
+.landing-header .btn{
+  padding: 0.9rem 1.6rem;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 10px 26px rgba(2,6,23,0.12);
+}
+
+.landing-header .btn-primary{
+  background: linear-gradient(90deg,var(--moline-primary),#2563eb);
+  border: none;
+}
+
+.landing-header .btn-success{
+  background: linear-gradient(90deg,var(--moline-accent),#06b35c);
+  border: none;
+  color: #ffffff;
+}
+
+/* ABOUT */
+.landing-page section h2{
+  color: var(--moline-primary);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.landing-page section p.text-muted{
+  color: var(--muted);
+  max-width: 820px;
+  margin: 0.5rem auto 0;
+  line-height: 1.7;
+}
+
+/* BENEFITS / CARDS */
+.landing-page .card{
+  border: 0;
+  border-radius: 12px;
+  transition: transform 0.24s ease, box-shadow 0.24s ease;
+}
+
+.landing-page .card .card-body{ padding: 1.6rem; }
+
+.landing-page .card:hover{
+  transform: translateY(-8px);
+  box-shadow: 0 22px 46px rgba(2,6,23,0.07);
+}
+
+.landing-page .card-title{ color: #0b2547; font-weight: 700; }
+.landing-page .card-text{ color: var(--muted); }
+
+/* TESTIMONIAL */
+.landing-page .card.blockquote{ background: transparent; }
+.landing-page .card .rounded-circle{
+  border: 3px solid rgba(30,58,138,0.08);
+}
+
+.landing-page blockquote p{ font-size: 1.05rem; font-style: italic; color: #0b1730; }
+.landing-page .blockquote-footer{ color: var(--muted); }
+
+/* CTA */
+.landing-page section.bg-light{
+  background: linear-gradient(180deg,#fbfdff,#ffffff);
+}
+
+.landing-page .btn-lg{ font-size: 1.05rem; padding: 0.95rem 1.8rem; }
+
+/* FOOTER (scoped) */
+.landing-page footer{ background: #071020; color: #c7d2da; }
+.landing-page footer p{ margin: 0.25rem 0; color: #9aa5b1; }
+.landing-page footer a{ color: #c7d2da; text-decoration: none; }
+.landing-page footer a:hover{ color: #ffffff; text-decoration: underline; }
+
+/* Responsive tweaks */
+@media (max-width: 768px){
+  .landing-header{ padding: 3rem 0; min-height: 360px; }
+  .landing-header .display-5{ font-size: 1.6rem; }
+  .landing-header .btn{ width: 100%; margin-bottom: 0.5rem; }
+  .landing-header .btn + .btn{ margin-left: 0; }
+}

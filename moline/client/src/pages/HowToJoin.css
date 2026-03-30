@@ -1,0 +1,138 @@
+/* HowToJoin.css — polished, page-scoped styles for the HowToJoin page */
+
+:root{
+  --moline-primary: #1e3a8a;
+  --moline-accent: #10b981;
+  --muted: #6b7280;
+  --surface: #f8fafc;
+  --card-border: #eef2f6;
+}
+
+/* Scope all rules to the join page to avoid leaking global styles */
+.join-sacco-page{
+  background: var(--surface);
+  font-family: Inter, 'Segoe UI', Tahoma, Arial, sans-serif;
+  color: #0f172a;
+  padding-bottom: 3rem;
+}
+
+.container-body{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Hero (uses the existing .bg-primary elements in the component) */
+.join-sacco-page .bg-primary{
+  background: linear-gradient(90deg, var(--moline-primary), #2563eb);
+  padding: 2.25rem;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(2,6,23,0.06);
+  margin-bottom: 1.25rem;
+}
+
+.join-sacco-page .bg-primary h1{
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+
+.join-sacco-page .lead{
+  color: rgba(255,255,255,0.92);
+  margin-bottom: 0;
+}
+
+/* Requirement cards */
+.requirement-card{
+  border-radius: 12px;
+  background: linear-gradient(135deg,#f3fff7 0%, #eef5ff 100%);
+  border: 1px solid var(--card-border);
+}
+
+.requirement-card .card-body{
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.join-sacco-page .text-success{
+  color: var(--moline-accent) !important;
+  background: rgba(16,185,129,0.08);
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-size: 1.05rem;
+}
+
+.requirement-card .card-text{
+  margin: 0;
+  font-weight: 600;
+  color: #0b1730;
+}
+
+/* Step-by-step list with numbered badges */
+.list-group-numbered{ counter-reset: step; padding: 0; }
+
+.list-group-numbered .list-group-item{
+  list-style: none;
+  position: relative;
+  padding: 1rem 1rem 1rem 72px;
+  margin-bottom: 0.75rem;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid var(--card-border);
+}
+
+.list-group-numbered .list-group-item::before{
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--moline-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.06);
+}
+
+.list-group-numbered .list-group-item p{ margin: 0; color: #0b1730; line-height: 1.6; }
+
+/* Cost cards */
+.cost-card{
+  border-radius: 12px;
+  padding: 0.75rem;
+  border: 1px solid var(--card-border);
+  transition: transform .22s ease, box-shadow .22s ease;
+  background: #fff;
+}
+
+.cost-card:hover{ transform: translateY(-6px); box-shadow: 0 18px 40px rgba(2,6,23,0.06); }
+
+.cost-card .card-title{ font-weight: 700; color: #0b2547; }
+.cost-card .card-text{ color: var(--moline-accent); font-weight: 700; }
+
+.join-sacco-page .card .card-body{ padding: 1.1rem; }
+
+/* Small utilities */
+.join-sacco-page h2{ font-weight: 700; }
+.join-sacco-page .mb-3{ margin-bottom: 1rem !important; }
+
+/* Responsive tweaks */
+@media (max-width: 768px){
+  .container-body{ padding: 1rem; }
+  .join-sacco-page .bg-primary{ padding: 1.25rem; }
+  .list-group-numbered .list-group-item{ padding-left: 60px; }
+  .list-group-numbered .list-group-item::before{ left: 12px; width: 34px; height: 34px; }
+}
+

@@ -1,0 +1,70 @@
+.content-wrapper {
+  padding: 20px;
+}
+
+.small-box {
+  color: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.small-box .inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.small-box .small-box-footer {
+  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 10px 20px;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(0, 0, 0, 0.1);
+  width: 100%;
+  text-align: center;
+}
+
+.small-box .small-box-footer:hover {
+  color: #fff;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.card {
+  margin-bottom: 20px;
+}
+
+.card-header {
+  background: #f8f9fa;
+  padding: 15px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.card-title {
+  margin: 0;
+}
+
+.table {
+  margin: 0;
+}
+
+.table thead th {
+  background: #f8f9fa;
+}
+
+.table-bordered {
+  border: 1px solid #dee2e6;
+}
+
+.table-hover tbody tr:hover {
+  background: #f1f1f1;
+}
+
+.btn-danger {
+  width: 100%;
+  padding: 10px;
+}

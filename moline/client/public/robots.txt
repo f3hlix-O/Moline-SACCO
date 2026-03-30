@@ -1,0 +1,15 @@
+# robots.txt for Moline SACCO
+# See: https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+# Prevent indexing of API endpoints, admin pages, build artifacts and uploads
+Disallow: /api/
+Disallow: /admin/
+Disallow: /uploads/
+Disallow: /server/
+Disallow: /node_modules/
+
+# Allow everything else
+Allow: /
+
+

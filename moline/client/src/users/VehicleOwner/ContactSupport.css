@@ -1,0 +1,143 @@
+/* Floating Help Button */
+.floating-help {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background-color: #1e3a8a;
+  color: #fff;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.12);
+  z-index: 1200;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.floating-help:hover {
+  transform: translateY(-4px);
+  background-color: #163165;
+}
+
+/* Modal Styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1050;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  width: 92%;
+  max-width: 640px;
+  padding: 24px;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.12);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 6px;
+}
+
+.modal-body {
+  margin-top: 20px;
+}
+
+/* Title */
+.modal-title {
+  color: #0b1730;
+  font-size: 1.15rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.modal-header .btn-close {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: #f3f6fb;
+  border-radius: 8px;
+  color: #334155;
+}
+
+/* Form layout */
+.form-outline {
+  margin-bottom: 14px;
+}
+
+.form-control {
+  border: 1px solid #e6eef8;
+  box-shadow: none;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0b1730;
+}
+
+.form-control:focus {
+  border-color: #94b3ff;
+  box-shadow: 0 6px 18px rgba(30,58,138,0.08);
+  outline: none;
+}
+
+textarea.form-control {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.text-muted {
+  color: #64748b !important;
+  font-size: 12px;
+}
+
+input[type="file"] {
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: 1px dashed #e6eef8;
+  background: #fbfdff;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg,#1e3a8a,#163165);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(30,58,138,0.12);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 18px;
+  }
+  .modal-title { font-size: 1rem; }
+}
+
+/* small helper label for file */
+.file-hint {
+  display: inline-block;
+  margin-top: 6px;
+  color: #94a3b8;
+  font-size: 12px;
+}
