@@ -80,6 +80,11 @@ app.use((req, res, next) => {
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
+
+// setTimeout() => {
+//   console.log("Delayed log: This message appears after a 5-second delay.");
+// }
+
 app.use("/api/finance", financeRoutes);
 app.use("/api/matatus", matatuRoutes);
 app.use("/api/roles", roleRoutes);

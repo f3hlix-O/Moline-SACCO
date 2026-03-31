@@ -10,11 +10,11 @@ function AdminLogin() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
         try {
-            const response = await fetch('http://localhost:5000/api/users/login', {
+            const response = await fetch('http://localhost:5000/api/admin/admin-login', {
                 method: 'POST',
                 body: JSON.stringify({ email, password }),
                 headers: {
@@ -36,6 +36,8 @@ function AdminLogin() {
                         timer: 3000,
                         timerProgressBar: true,
                     });
+                    if (data.user.role_id === 202) {
+                     navigate('/admin/adminpanel');}
                     switch (data.user.role_id) {
                         case 201:
                             navigate("/staff/dashboard");

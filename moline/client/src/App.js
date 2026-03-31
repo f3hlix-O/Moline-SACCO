@@ -21,6 +21,10 @@ import Navbar from "./pages/navBar";
 import HowToJoin from "./pages/HowToJoin";
 import ContactUs from "./pages/contactUs";
 import FAQ from "./pages/FAQ";
+import AdminLogin from "./admin/pages/AdminLogin";
+import UserReport from "./admin/reports/userReport";
+import MatatuReport from "./admin/reports/matatuReport";
+import FinancialReport from "./admin/reports/financialReport";
 
 function App() {
   return (
@@ -38,6 +42,7 @@ function AppContent() {
   // Define the paths where the Navbar should appear
   const nonAdminRoutes = [
     "/",
+    "/admin/login",
     "/login",
     "/register",
     "/reset",
@@ -58,6 +63,7 @@ function AppContent() {
         <Routes>
           {/* Non-admin routes */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/reset" element={<ForgotPassword />} />
@@ -66,6 +72,32 @@ function AppContent() {
           <Route path="/join-us" element={<HowToJoin />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/contact" element={<ContactUs />} />
+
+          {/* Report routes (protected) */}
+          <Route
+            path="/reports/users"
+            element={
+              <ProtectedRoute allowedRoles={[202]}>
+                <UserReport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/vehicles"
+            element={
+              <ProtectedRoute allowedRoles={[202]}>
+                <MatatuReport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/financials"
+            element={
+              <ProtectedRoute allowedRoles={[202]}>
+                <FinancialReport />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Protected routes */}
           {routes.map((route, index) => (

@@ -2,36 +2,36 @@ const { pool } = require('../config/database');
 
 const getMatatusDetails = (req, res) => {
     const sql = `
-        SELECT 
-            m.matatu_id, 
-            m.number_plate, 
-            m.status,
-            driver.first_name AS driver_first_name, 
-            driver.last_name AS driver_last_name,
-            owner.first_name AS owner_first_name,
-            owner.last_name AS owner_last_name,
-            COALESCE(s.amount, 0) AS savings,
-            COALESCE(l.amount_due, 0) AS loan,
-            i.insurance_expiry AS insurance_expiry
-        FROM matatus m
-        LEFT JOIN users driver ON m.driver_id = driver.user_id
-        LEFT JOIN users owner ON m.owner_id = owner.user_id
-        LEFT JOIN (
-            SELECT matatu_id, amount 
-            FROM savings 
-            GROUP BY matatu_id
-        ) s ON m.matatu_id = s.matatu_id
-        LEFT JOIN (
-            SELECT matatu_id, amount_due 
-            FROM loans 
-            GROUP BY matatu_id
-        ) l ON m.matatu_id = l.matatu_id
-        LEFT JOIN (
-            SELECT matatu_id, insurance_expiry, amount 
-            FROM insurance 
-            GROUP BY matatu_id
-        ) i ON m.matatu_id = i.matatu_id
-    `;
+    SELECT 
+        m.matatu_id, 
+        m.number_plate, 
+        m.status,
+        driver.first_name AS driver_first_name, 
+        driver.last_name AS driver_last_name,
+        owner.first_name AS owner_first_name,
+        owner.last_name AS owner_last_name,
+        COALESCE(s.amount, 0) AS savings,
+        COALESCE(l.amount_due, 0) AS loan,
+        i.insurance_expiry
+    FROM matatus m
+    LEFT JOIN users driver ON m.driver_id = driver.user_id
+    LEFT JOIN users owner ON m.owner_id = owner.user_id
+    LEFT JOIN (
+        SELECT matatu_id, SUM(amount) AS amount
+        FROM savings 
+        GROUP BY matatu_id
+    ) s ON m.matatu_id = s.matatu_id
+    LEFT JOIN (
+        SELECT matatu_id, SUM(amount_due) AS amount_due
+        FROM loans 
+        GROUP BY matatu_id
+    ) l ON m.matatu_id = l.matatu_id
+    LEFT JOIN (
+        SELECT matatu_id, MAX(insurance_expiry) AS insurance_expiry
+        FROM insurance 
+        GROUP BY matatu_id
+    ) i ON m.matatu_id = i.matatu_id
+`;
 
     pool.query(sql, (error, results) => {
         if (error) {
@@ -61,7 +61,7 @@ const getFinancialDetails = (req, res) => {
         LEFT JOIN loans ON matatus.matatu_id = loans.matatu_id
         LEFT JOIN savings ON matatus.matatu_id = savings.matatu_id
         LEFT JOIN insurance ON matatus.matatu_id = insurance.matatu_id
-        GROUP BY matatus.matatu_id, loans.loan_id, savings.savings_id, insurance.ID;
+        GROUP BY matatus.matatu_id, loans.loan_id, savings.ID, insurance.ID;
     `;
 
     pool.query(query, (error, results) => {
