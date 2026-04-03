@@ -1,4 +1,4 @@
-# robots.txt for Moline SACCO
+# robots.txt for Moline Matatu SACCO
 # See: https://www.robotstxt.org/robotstxt.html
 
 User-agent: *

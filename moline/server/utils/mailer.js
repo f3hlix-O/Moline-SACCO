@@ -45,7 +45,7 @@ if (SMTP_HOST) {
 
 //  Reusable email sender that returns the nodemailer info or throws on error
 const sendEmail = async (options) => {
-  const fromAddress = `"Moline SACCO" <${EMAIL_USER}>`;
+  const fromAddress = `"Moline Matatu SACCO" <${EMAIL_USER}>`;
   const mailOptions = {
     from: fromAddress,
     to: options.to,
@@ -66,13 +66,13 @@ const sendApprovalEmail = async (email, firstName) => {
   try {
     await sendEmail({
       to: email,
-      subject: "Account Approved - Moline SACCO",
+      subject: "Account Approved - Moline Matatu SACCO",
       html: `
             <h2>Hello ${firstName},</h2>
             <p>Your account has been <strong>approved</strong> ✅.</p>
             <p>You can now log in and continue using our services.</p>
             <br/>
-            <p>Regards,<br/>Moline SACCO Team</p>
+            <p>Regards,<br/>Moline Matatu SACCO Team</p>
         `,
     });
   } catch (err) {
@@ -85,13 +85,13 @@ const sendDisapprovalEmail = async (email, firstName) => {
   try {
     await sendEmail({
       to: email,
-      subject: "Account Disapproved - Moline SACCO",
+      subject: "Account Disapproved - Moline Matatu SACCO",
       html: `
             <h2>Hello ${firstName},</h2>
             <p>We regret to inform you that your account request has been <strong>disapproved</strong>.</p>
             <p>For more information, please contact support.</p>
             <br/>
-            <p>Regards,<br/>Moline SACCO Team</p>
+            <p>Regards,<br/>Moline Matatu SACCO Team</p>
         `,
     });
   } catch (err) {
@@ -104,11 +104,11 @@ const sendWelcomeEmail = async (email, firstName) => {
   try {
     return await sendEmail({
       to: email,
-      subject: "Welcome to Moline SACCO - Next Steps",
+      subject: "Welcome to Moline Matatu SACCO - Next Steps",
       html: `
             <div style="font-family: Arial;">
                 <h2>Hello ${firstName},</h2>
-                <p>Welcome to <strong>Moline SACCO</strong> 🎉</p>
+                <p>Welcome to <strong>Moline Matatu SACCO</strong> 🎉</p>
 
                 <p>To get started:</p>
                 <ul>
@@ -119,7 +119,7 @@ const sendWelcomeEmail = async (email, firstName) => {
                 <p>Once payment is confirmed, full access will be granted.</p>
 
                 <br/>
-                <p>Regards,<br/>Moline SACCO Team</p>
+                <p>Regards,<br/>Moline Matatu SACCO Team</p>
             </div>
         `,
     });
@@ -135,7 +135,7 @@ const sendPaymentConfirmationEmail = async (email, firstName) => {
   try {
     await sendEmail({
       to: email,
-      subject: "Payment Received - Moline SACCO",
+      subject: "Payment Received - Moline Matatu SACCO",
       html: `
             <div style="font-family: Arial;">
                 <h2>Hello ${firstName},</h2>
@@ -151,7 +151,7 @@ const sendPaymentConfirmationEmail = async (email, firstName) => {
                 <p><strong>Next:</strong> Log in and start using the system.</p>
 
                 <br/>
-                <p>Welcome aboard!<br/>Moline SACCO Team</p>
+                <p>Welcome aboard!<br/>Moline Matatu SACCO Team</p>
             </div>
         `,
     });
@@ -164,7 +164,7 @@ const sendPaymentConfirmationEmail = async (email, firstName) => {
 const sendResetPasswordEmail = async (email, resetLink) => {
   return sendEmail({
     to: email,
-    subject: "Reset your password - Moline SACCO",
+    subject: "Reset your password - Moline Matatu SACCO",
     html: `
       <div style="font-family: Arial, sans-serif; color: #0b1730;">
         <h2>Password reset request</h2>
@@ -173,7 +173,7 @@ const sendResetPasswordEmail = async (email, resetLink) => {
         <p><a href="${resetLink}" style="display:inline-block;padding:10px 16px;background: #1e3a8a;color:#fff;border-radius:6px;text-decoration:none;">Reset password</a></p>
         <p>If you did not request a password reset, please ignore this email.</p>
         <br/>
-        <p>Regards,<br/>Moline SACCO Team</p>
+        <p>Regards,<br/>Moline Matatu SACCO Team</p>
       </div>
     `,
   });

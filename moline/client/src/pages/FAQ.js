@@ -36,7 +36,7 @@ const FAQ = () => {
         "The system automatically tracks insurance payments for each vehicle. If insurance expires, the vehicle’s status is updated to 'suspended,' and notifications are sent to the owner and driver to renew the policy.",
     },
     {
-      question: "Is my data secure in the Moline SACCO System?",
+      question: "Is my data secure in the Moline Matatu SACCO System?",
       answer:
         "Absolutely. The system uses JWT (JSON Web Tokens) for secure authentication, encrypts sensitive data, and complies with data protection standards to ensure your personal and financial information is safe.",
     },
@@ -53,7 +53,7 @@ const FAQ = () => {
       >
         {/* <h1 className="fw-bold">
           Frequently Asked Questions about{" "}
-          <span className="text-warning">Moline SACCO</span>
+          <span className="text-warning">Moline Matatu SACCO</span>
         </h1>
         <p className="lead">
           Find answers to common questions about our system and services.
@@ -67,7 +67,7 @@ const FAQ = () => {
       >
         <h1 className="fw-bold">
           Frequently Asked Questions about{" "}
-          <span className="text-warning">Moline SACCO</span>
+          <span className="text-warning">Moline Matatu SACCO</span>
         </h1>
         <p className="lead">
           Find answers to common questions about our system and services.
@@ -84,10 +84,7 @@ const FAQ = () => {
           transition={{ duration: 0.5 }}
         >
           {faqs.map((faq, index) => (
-            <Card
-              key={index}
-              className="shadow border-0 mb-3 faq-card"
-            >
+            <Card key={index} className="shadow border-0 mb-3 faq-card">
               <Card.Header
                 className="d-flex justify-content-between align-items-center bg-light cursor-pointer"
                 onClick={() => toggleFAQ(index)}

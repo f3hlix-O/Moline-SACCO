@@ -123,7 +123,7 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <div className="sidebar-footer">Moline SACCO</div>
+      <div className="sidebar-footer">Moline Matatu SACCO</div>
     </aside>
   );
 };

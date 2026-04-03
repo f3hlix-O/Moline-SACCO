@@ -21,7 +21,7 @@ const LandingPage = () => {
             Empowering Your Financial Future
           </h1>
           <p className="lead">
-            Join Moline SACCO for secure savings and flexible loans.
+            Join Moline Matatu SACCO for secure savings and flexible loans.
           </p>
           <div className="mt-4">
             <Link to="/login" className="btn btn-primary btn-lg mx-2">
@@ -36,13 +36,15 @@ const LandingPage = () => {
 
       {/* About Section */}
       <section className="container text-center my-5">
-        <h2 className="mb-3">Moline SACCO: Where Growth Meets Opportunity</h2>
+        <h2 className="mb-3">
+          Moline Matatu SACCO: Where Growth Meets Opportunity
+        </h2>
         <p className="text-muted">
-          At Moline SACCO, we empower matatu owners with financial stability,
-          seamless operations, and a future full of possibilities. Whether
-          you're looking to expand your business, secure your investments, or
-          access exclusive financial benefits, we are here to support you every
-          step of the way.
+          At Moline Matatu SACCO, we empower matatu owners with financial
+          stability, seamless operations, and a future full of possibilities.
+          Whether you're looking to expand your business, secure your
+          investments, or access exclusive financial benefits, we are here to
+          support you every step of the way.
         </p>
       </section>
 
@@ -96,8 +98,8 @@ const LandingPage = () => {
             />
             <blockquote className="blockquote">
               <p>
-                “Moline SACCO helped me start my business. The support was
-                amazing!”
+                “Moline Matatu SACCO helped me start my business. The support
+                was amazing!”
               </p>
               <footer className="blockquote-footer">
                 John Doe, Member since 2018
@@ -120,7 +122,8 @@ const LandingPage = () => {
       <footer className="bg-dark text-white py-4">
         <div className="container text-center">
           <p>
-            &copy; {new Date().getFullYear()} Moline SACCO. All rights reserved.
+            &copy; {new Date().getFullYear()} Moline Matatu SACCO. All rights
+            reserved.
           </p>
           <p>Email: info@molinasacco.com | Phone: +254 700 000 000</p>
           <div>

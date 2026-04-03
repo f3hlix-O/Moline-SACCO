@@ -27,7 +27,7 @@ const getMatatus = (req, res) => {
 const getMatatusForUser = async (req, res) => {
   const userId = req.params.userId || req.userId;
   const { matatu_id } = req.query;
-
+  console.log("Fetching matatus for user:", userId, "with filter matatu_id:", matatu_id);
   const sql = `
         SELECT 
             m.matatu_id,

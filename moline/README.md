@@ -1,7 +1,7 @@
 # MATIS
 Matatu SACCO Finance and Staff Management System
 
-# Moline Sacco System
+# Moline Matatu SACCO System
 
 ## A transport company where owners of vehicles remit as follows on a daily basis, * indicate must be remitted, the rest are optional:-
 
