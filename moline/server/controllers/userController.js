@@ -74,6 +74,14 @@ const signup = async (req, res) => {
   }
 
   try {
+    // Ensure email is unique
+    const existing = await pool.query(
+      "SELECT user_id FROM Users WHERE email = ?",
+      [email],
+    );
+    if (existing && existing.length > 0) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -93,37 +101,24 @@ const signup = async (req, res) => {
       gender,
       id_image,
     ];
+    const results = await pool.query(sqlInsertUser, userValues);
+    const userId = results && results.insertId;
 
-    pool.query(sqlInsertUser, userValues, (error, results) => {
-      if (error) {
-        console.error("Error inserting user data:", error);
-        return res
-          .status(500)
-          .json({ error: "An error occurred while inserting user data" });
-      }
+    // send welcome email (non-blocking behavior)
+    sendWelcomeEmail(email, first_name).catch((err) =>
+      console.warn("Welcome email failed", err),
+    );
 
-      const userId = results.insertId;
-      sendWelcomeEmail(email, first_name);
-
-      const sqlInsertUserRole = `
+    const sqlInsertUserRole = `
                 INSERT INTO user_role (user_id, role_id)
                 VALUES (?, ?)
             `;
-      const roleValues = [userId, 203];
+    const roleValues = [userId, 203];
+    await pool.query(sqlInsertUserRole, roleValues);
 
-      pool.query(sqlInsertUserRole, roleValues, (roleError) => {
-        if (roleError) {
-          console.error("Error assigning role to user:", roleError);
-          return res
-            .status(500)
-            .json({ error: "An error occurred while assigning role to user" });
-        }
-
-        res.json({
-          message: "User signed up successfully and role assigned",
-          userId,
-        });
-      });
+    return res.json({
+      message: "User signed up successfully and role assigned",
+      userId,
     });
   } catch (error) {
     console.error("Error during signup:", error);

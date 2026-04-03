@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Button, Card, Form } from "react-bootstrap";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEnvelope,
@@ -58,7 +58,8 @@ const ContactUs = () => {
         transition={{ duration: 0.5 }}
       >
         <h1 className="fw-bold">
-          Get in Touch with <span className="text-warning"> Moline SACCO</span>
+          Get in Touch with{" "}
+          <span className="text-warning"> Moline Matatu SACCO</span>
         </h1>
         <p className="lead">
           We’re here to help! Contact us for any inquiries or support.
@@ -158,7 +159,7 @@ const ContactUs = () => {
           transition={{ duration: 0.5 }}
         >
           <iframe
-            title="Moline SACCO Location"
+            title="Moline Matatu SACCO Location"
             width="100%"
             height="400"
             frameBorder="0"

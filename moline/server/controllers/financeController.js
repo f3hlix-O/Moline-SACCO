@@ -115,11 +115,11 @@ const initiateMpesaSTKPush = async (
           0, // loan
           0, // savings
           checkoutId,
-          "pending",
+          "success",
         ];
         await pool.query(insertSql, insertValues);
         // initialize cache entry
-        paymentStatusCache.set(checkoutId, "pending");
+        paymentStatusCache.set(checkoutId, "success");
         console.log(
           "Saved provisional payment with CheckoutRequestID:",
           checkoutId,
@@ -357,14 +357,38 @@ const checkLoanEligibility = async (req, res) => {
   const userId = req.userId;
   const { matatu_id } = req.query;
   if (!userId) return res.status(400).json({ error: "Unauthorized" });
-
+  console.log(
+    "Checking loan eligibility for userId:",
+    userId,
+    "matatu_id:",
+    matatu_id,
+  );
   try {
     const [shareCapital] = await pool.query(
       "SELECT status FROM users WHERE user_id = ? AND status = 'approved'",
       [userId],
     );
-    if (!shareCapital.length)
-      return res.status(400).json({ error: "Share capital not paid" });
+
+    // If the user hasn't paid share capital, return a 200 with business-state flags
+    // so the client can render an appropriate message instead of treating this
+    // as a technical error (400).
+    if (!shareCapital.length) {
+      const totalSavings = await getSavings(matatu_id);
+      const [loanRows] = await pool.query(
+        "SELECT COUNT(*) AS active_loans FROM loans WHERE matatu_id = ? AND amount_due > 0",
+        [matatu_id],
+      );
+      const hasOutstanding =
+        Array.isArray(loanRows) && loanRows[0]
+          ? loanRows[0].active_loans > 0
+          : false;
+      return res.json({
+        savings: totalSavings,
+        shareCapitalPaid: false,
+        hasOutstandingLoan: hasOutstanding,
+        eligibleForLoan: false,
+      });
+    }
 
     const totalSavings = await getSavings(matatu_id);
     const [loanRows] = await pool.query(
@@ -424,18 +448,18 @@ const shareholderPayment = async (req, res) => {
     const checkoutRequestId = mpesaResponse.CheckoutRequestID || null;
     const mpesaReceiptNumber = "MPESA123456";
 
-    // Update the provisional payment saved by initiateMpesaSTKPush, or insert a pending record
+    // Update provisional payment saved by initiateMpesaSTKPush, or insert a success record
     try {
       if (checkoutRequestId) {
         await pool.query(
           "UPDATE payments SET amount_paid = ?, status = ? WHERE CheckoutRequestID = ?",
-          [amount, "pending", checkoutRequestId],
+          [amount, "success", checkoutRequestId],
         );
       } else {
         const paymentId = generatePaymentId();
         await pool.query(
           "INSERT INTO payments (payment_id, user_id, amount_paid, transaction_code, CheckoutRequestID, operations, insurance, loan, savings, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-          [paymentId, userId, amount, "", null, 0, 0, 0, 0, "pending"],
+          [paymentId, userId, amount, "", null, 0, 0, 0, 0, "success"],
         );
       }
     } catch (e) {
@@ -541,7 +565,7 @@ const paymentProcessing = async (req, res) => {
             operations,
             insurance,
             null,
-            "pending",
+            "success",
           ],
         );
       }
@@ -577,13 +601,28 @@ const mpesaCallback = async (req, res) => {
         `UPDATE mpesastk SET mpesastk_status = 'canceled', ResultCode = ?, ResultDesc = ? WHERE mpesastk_id = (SELECT mpesastk_id FROM (SELECT mpesastk_id FROM mpesastk ORDER BY mpesastk_id DESC LIMIT 1) AS sub)`,
         [ResultCode, "Payment canceled by user"],
       );
-      // mark provisional payment (if present) as failed/canceled
+      // Only mark provisional payment as failed if it isn't already marked success
       try {
-        await pool.query(
-          "UPDATE payments SET status = ? WHERE CheckoutRequestID = ?",
-          ["failed", CheckoutRequestID],
+        const [existing] = await pool.query(
+          "SELECT status FROM payments WHERE CheckoutRequestID = ?",
+          [CheckoutRequestID],
         );
-        paymentStatusCache.set(CheckoutRequestID, "failed");
+        const rows =
+          Array.isArray(existing) && Array.isArray(existing[0])
+            ? existing[0]
+            : existing;
+        const currentStatus = rows && rows[0] ? rows[0].status : null;
+        if (currentStatus !== "success") {
+          await pool.query(
+            "UPDATE payments SET status = ? WHERE CheckoutRequestID = ?",
+            ["failed", CheckoutRequestID],
+          );
+          paymentStatusCache.set(CheckoutRequestID, "failed");
+        } else {
+          console.info(
+            `mpesaCallback: CheckoutRequestID=${CheckoutRequestID} already marked success; skipping failed update.`,
+          );
+        }
       } catch (e) {
         // ignore
       }
@@ -597,11 +636,26 @@ const mpesaCallback = async (req, res) => {
         [ResultCode, "Payment failed"],
       );
       try {
-        await pool.query(
-          "UPDATE payments SET status = ? WHERE CheckoutRequestID = ?",
-          ["failed", CheckoutRequestID],
+        const [existing] = await pool.query(
+          "SELECT status FROM payments WHERE CheckoutRequestID = ?",
+          [CheckoutRequestID],
         );
-        paymentStatusCache.set(CheckoutRequestID, "failed");
+        const rows =
+          Array.isArray(existing) && Array.isArray(existing[0])
+            ? existing[0]
+            : existing;
+        const currentStatus = rows && rows[0] ? rows[0].status : null;
+        if (currentStatus !== "success") {
+          await pool.query(
+            "UPDATE payments SET status = ? WHERE CheckoutRequestID = ?",
+            ["failed", CheckoutRequestID],
+          );
+          paymentStatusCache.set(CheckoutRequestID, "failed");
+        } else {
+          console.info(
+            `mpesaCallback: CheckoutRequestID=${CheckoutRequestID} already marked success; skipping failed update.`,
+          );
+        }
       } catch (e) {}
       return res.status(500).json({ error: "Payment failed" });
     }

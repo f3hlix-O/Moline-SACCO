@@ -184,7 +184,7 @@ function AdminPanel() {
                     <Link to="/admin/adminpanel">Home</Link>
                   </li>
                   <li className="breadcrumb-item active">
-                    Moline SACCO management System
+                    Moline Matatu SACCO management System
                   </li>
                 </ol>
               </div>
