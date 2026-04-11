@@ -38,7 +38,6 @@ import UpdateStaffDetails from "../staff/updateStaff";
 import ContactSupport from "../users/VehicleOwner/contactSupport";
 import HelpPage from "../pages/HelpPage";
 import Savings from "../admin/pages/Savings";
-import "../styles/layout.css";
 
 // Define Admin layout
 const AdminLayout = () => (

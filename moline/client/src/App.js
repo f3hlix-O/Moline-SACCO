@@ -12,6 +12,7 @@ import ForgotPassword from "./pages/auth/forgot_password";
 import ResetPassword from "./pages/auth/ResetPassword";
 import Login from "./pages/auth/Login";
 import "./index.css";
+import "./styles/layout.css";
 import { AuthProvider } from "./context/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import routes from "./components/Routes";
