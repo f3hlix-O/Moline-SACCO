@@ -27,7 +27,7 @@ function Register() {
     password: "",
     confirmPassword: "",
     gender: "",
-    ID_image: null,
+    id_image: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -70,114 +70,129 @@ function Register() {
     }
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+const handleSubmit = async (event) => {
+  event.preventDefault();
 
-    const {
-      phone,
-      national_id,
-      password,
-      confirmPassword,
-      email,
-      first_name,
-      last_name,
-      address,
-      gender,
-      ID_image,
-    } = formData;
+  const {
+    first_name,
+    last_name,
+    email,
+    phone,
+    national_id,
+    address,
+    password,
+    confirmPassword,
+    gender,
+    id_image,
+  } = formData;
 
-    if (phone.length !== 10) {
+  if (!first_name || !last_name || !email || !phone || !national_id || !address || !password || !gender || !id_image) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "All fields are required.",
+    });
+    return;
+  }
+
+  if (phone.length !== 10) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Phone should be ten digits.",
+    });
+    return;
+  }
+
+  if (national_id.length < 8 || national_id.length > 9) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "National ID should be 8-9 digits.",
+    });
+    return;
+  }
+
+  const missingRules = [];
+  if (!passwordRules.length) missingRules.push("Minimum 8 characters");
+  if (!passwordRules.lowercase) missingRules.push("At least one lowercase letter");
+  if (!passwordRules.uppercase) missingRules.push("At least one uppercase letter");
+  if (!passwordRules.number) missingRules.push("At least one number");
+  if (!passwordRules.specialChar) missingRules.push("At least one special character (@$!%*?&)");
+
+  if (missingRules.length > 0) {
+    Swal.fire({
+      icon: "error",
+      title: "Password Requirements Not Met",
+      html: `<ul style="text-align:left;">${missingRules.map((rule) => `<li>${rule}</li>`).join("")}</ul>`,
+    });
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Passwords do not match.",
+    });
+    return;
+  }
+
+  const emailExists = await checkEmailExists(email);
+  if (emailExists) {
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Email already exists.",
+    });
+    return;
+  }
+
+  const dataToSend = new FormData();
+  dataToSend.append("first_name", first_name);
+  dataToSend.append("last_name", last_name);
+  dataToSend.append("email", email);
+  dataToSend.append("phone", phone);
+  dataToSend.append("national_id", national_id);
+  dataToSend.append("address", address);
+  dataToSend.append("password", password);
+  dataToSend.append("gender", gender);
+  dataToSend.append("ID_image", id_image);
+
+  for (const pair of dataToSend.entries()) {
+    console.log(pair[0], pair[1]);
+  }
+
+  try {
+    const response = await axiosInstance.post("/users/signup", dataToSend, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    if (response.status === 200 || response.status === 201) {
+      Swal.fire({
+        icon: "success",
+        title: "Signup Successful!",
+        text: "You have successfully signed up.",
+      });
+      navigate("/Login");
+    } else {
       Swal.fire({
         icon: "error",
-        title: "Error",
-        text: "Phone should be ten digits.",
-      });
-      return;
-    }
-    if (national_id.length < 8 || national_id.length > 9) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "National ID should be 8-9 digits",
-      });
-      return;
-    }
-
-    const missingRules = [];
-    if (!passwordRules.length) missingRules.push("Minimum 8 characters");
-    if (!passwordRules.lowercase)
-      missingRules.push("At least one lowercase letter");
-    if (!passwordRules.uppercase)
-      missingRules.push("At least one uppercase letter");
-    if (!passwordRules.number) missingRules.push("At least one number");
-    if (!passwordRules.specialChar)
-      missingRules.push("At least one special character (@$!%*?&)");
-
-    if (missingRules.length > 0) {
-      Swal.fire({
-        icon: "error",
-        title: "Password Requirements Not Met",
-        html: `<ul style="text-align:left;">${missingRules.map((rule) => `<li>${rule}</li>`).join("")}</ul>`,
-      });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Passwords do not match.",
-      });
-      return;
-    }
-    if (!first_name || !last_name || !gender || !ID_image || !address) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "All fields required.",
-      });
-      return;
-    }
-
-    const emailExists = await checkEmailExists(email);
-    if (emailExists) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Email already exists.",
-      });
-      return;
-    }
-
-    const dataToSend = new FormData();
-    for (const [key, value] of Object.entries(formData)) {
-      dataToSend.append(key, value);
-    }
-
-    try {
-      const response = await axiosInstance.post("/users/signup", dataToSend);
-      if (response.status === 200) {
-        Swal.fire({
-          icon: "success",
-          title: "Signup Successful!",
-          text: "You have successfully signed up.",
-        });
-        navigate("/Login");
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Signup Failed",
-          text: response.data.error || "There was an error signing up.",
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "An unexpected error occurred.",
+        title: "Signup Failed",
+        text: response.data?.error || "There was an error signing up.",
       });
     }
-  };
+  } catch (error) {
+    console.error("Signup error:", error.response?.data || error.message);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.response?.data?.error || "An unexpected error occurred.",
+    });
+  }
+};
 
   return (
     <div>
@@ -278,10 +293,10 @@ function Register() {
                         <div className="form-outline">
                           <input
                             type="file"
-                            name="ID_image"
+                            name="id_image"
+                            accept="image/png"
                             onChange={handleChange}
                             className="form-control"
-                            accept=".jpg,.jpeg,.png"
                             required
                           />
                           <label className="form-label">Upload ID Image</label>
