@@ -1,36 +1,22 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import "./Sidenav.css";
 import matisLogo from "../../assets/matis-logo.png";
 
-// Dynamic Sidebar Search Component
-function SidebarSearch({ placeholder = "Search", onSearch }) {
-  const [query, setQuery] = useState("");
-
-  const handleSearch = () => {
-    if (onSearch) {
-      onSearch(query);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") handleSearch();
-  };
-
+function SidebarSearch({ placeholder = "Search menu...", value, onChange }) {
   return (
     <div className="form-inline">
-      <div className="input-group" data-widget="sidebar-search">
+      <div className="input-group">
         <input
           className="form-control form-control-sidebar"
           type="search"
           placeholder={placeholder}
           aria-label={placeholder}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={handleKeyDown}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
         />
         <div className="input-group-append">
-          <button className="btn btn-sidebar" onClick={handleSearch}>
+          <button className="btn btn-sidebar" type="button">
             <i className="fas fa-search fa-fw" />
           </button>
         </div>
@@ -40,6 +26,7 @@ function SidebarSearch({ placeholder = "Search", onSearch }) {
 }
 
 function Sidenav() {
+  const [searchQuery, setSearchQuery] = useState("");
   const [openDropdown, setOpenDropdown] = useState({
     userManagement: false,
     vehicleManagement: false,
@@ -47,21 +34,138 @@ function Sidenav() {
     reports: false,
   });
 
-  const toggleDropdown = (section) => {
+  const menuSections = [
+    {
+      key: "userManagement",
+      title: "USER MANAGEMENT",
+      items: [
+        {
+          label: "Approve Users",
+          to: "/admin/users/approve",
+          icon: "fas fa-user-check",
+        },
+        {
+          label: "Role management",
+          to: "/admin/users/roles",
+          icon: "fas fa-user-tag",
+        },
+        {
+          label: "User Profiles",
+          to: "/admin/users/profiles",
+          icon: "fas fa-users",
+        },
+        {
+          label: "Withdrawal Submissions",
+          to: "/admin/users",
+          icon: "fas fa-file-invoice",
+        },
+      ],
+    },
+    {
+      key: "vehicleManagement",
+      title: "FLEET MANAGEMENT",
+      items: [
+        {
+          label: "Vehicle Registrations",
+          to: "/admin/fleet/statuses",
+          icon: "fas fa-car",
+        },
+        {
+          label: "Manage fleet",
+          to: "/admin/fleet",
+          icon: "fas fa-clipboard-check",
+        },
+        {
+          label: "Driver Management",
+          to: "/admin/fleet/assignments",
+          icon: "fas fa-user-tie",
+        },
+      ],
+    },
+    {
+      key: "financialManagement",
+      title: "FINANCIAL MANAGEMENT",
+      items: [
+        {
+          label: "Loans",
+          to: "/admin/loans",
+          icon: "fas fa-hand-holding-usd",
+        },
+        {
+          label: "Savings",
+          to: "/admin/savings",
+          icon: "fas fa-piggy-bank",
+        },
+      ],
+    },
+    {
+      key: "reports",
+      title: "REPORTS",
+      items: [
+        {
+          label: "Users",
+          to: "/admin/reports/user-details",
+          icon: "fas fa-file-alt",
+        },
+        {
+          label: "Vehicles",
+          to: "/admin/reports/vehicle-details",
+          icon: "fas fa-file-alt",
+        },
+        {
+          label: "Financials",
+          to: "/admin/reports/financial",
+          icon: "fas fa-file-alt",
+        },
+        {
+          label: "Compliance Report",
+          to: "/admin/reports/compliance",
+          icon: "fas fa-file-alt",
+        },
+      ],
+    },
+  ];
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const isSearching = normalizedQuery.length > 0;
+
+  const filteredSections = useMemo(() => {
+    if (!normalizedQuery) return menuSections;
+
+    return menuSections
+      .map((section) => {
+        const sectionMatches = section.title
+          .toLowerCase()
+          .includes(normalizedQuery);
+
+        const filteredItems = sectionMatches
+          ? section.items
+          : section.items.filter((item) =>
+              item.label.toLowerCase().includes(normalizedQuery),
+            );
+
+        return {
+          ...section,
+          items: filteredItems,
+        };
+      })
+      .filter((section) => section.items.length > 0);
+  }, [normalizedQuery]);
+
+  const dashboardVisible =
+    !normalizedQuery || "dashboard".includes(normalizedQuery);
+
+  const toggleDropdown = (sectionKey) => {
+    if (isSearching) return;
+
     setOpenDropdown((prev) => ({
       ...prev,
-      [section]: !prev[section],
+      [sectionKey]: !prev[sectionKey],
     }));
-  };
-
-  // Example search handler
-  const handleSearch = (query) => {
-    console.log("Searching for:", query);
   };
 
   return (
     <aside className="main-sidebar sidebar-dark-primary elevation-4 custom-sidenav">
-      {/* Brand Logo */}
       <Link to="#" className="brand-link">
         <img
           src={matisLogo}
@@ -72,209 +176,79 @@ function Sidenav() {
         <span className="brand-text font-weight-light">Moline system</span>
       </Link>
 
-      {/* Sidebar */}
       <div className="sidebar">
-        {/* Sidebar user panel (optional) */}
-        <div className="user-panel mt-3 pb-3 mb-3 d-flex">
-          <div className="image">
-            <img
-              src="dist/img/user.jpg"
-              className="img-circle elevation-2"
-              alt="User Image"
-            />
-          </div>
+        <div className="user-panel mt-3 pb-3 mb-3 d-flex align-items-center">
           <div className="info">
             <Link to="#" className="d-block">
-              Super Admin
+              Super Admin (MANAGER)
             </Link>
           </div>
         </div>
 
-        {/* Dynamic Sidebar Search */}
-        <SidebarSearch placeholder="Search" onSearch={handleSearch} />
+        <SidebarSearch
+          placeholder="Search menu..."
+          value={searchQuery}
+          onChange={setSearchQuery}
+        />
 
-        {/* Sidebar Menu */}
         <nav className="mt-2">
           <ul
             className="nav nav-pills nav-sidebar flex-column"
-            data-widget="treeview"
             role="menu"
             data-accordion="false"
           >
-            <li className="nav-item">
-              <Link to="/admin/adminpanel" className="nav-link active">
-                <i className="nav-icon fas fa-tachometer-alt" />
-                <p>Dashboard</p>
-              </Link>
-            </li>
-
-            {/* User Management */}
-            <li
-              className="nav-header"
-              onClick={() => toggleDropdown("userManagement")}
-              style={{ cursor: "pointer" }}
-            >
-              USER MANAGEMENT
-              <i
-                className={`right fas fa-angle-${
-                  openDropdown.userManagement ? "down" : "left"
-                }`}
-                style={{ float: "right" }}
-              />
-            </li>
-            {openDropdown.userManagement && (
-              <>
-                <li className="nav-item">
-                  <Link to="/Admin/users/approve" className="nav-link">
-                    <i className="nav-icon fas fa-user-check" />
-                    <p>Approve Users</p>
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/Admin/users/roles" className="nav-link">
-                    <i className="nav-icon fas fa-user-tag" />
-                    <p>Role management</p>
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/Admin/users/profiles" className="nav-link">
-                    <i className="nav-icon fas fa-users" />
-                    <p>User Profiles</p>
-                  </Link>
-                </li>
-              </>
+            {dashboardVisible && (
+              <li className="nav-item">
+                <Link to="/admin/adminpanel" className="nav-link active">
+                  <i className="nav-icon fas fa-tachometer-alt" />
+                  <p>Dashboard</p>
+                </Link>
+              </li>
             )}
 
-            {/* Vehicle Management */}
-            <li
-              className="nav-header"
-              onClick={() => toggleDropdown("vehicleManagement")}
-              style={{ cursor: "pointer" }}
-            >
-              FLEET MANAGEMENT
-              <i
-                className={`right fas fa-angle-${
-                  openDropdown.vehicleManagement ? "down" : "left"
-                }`}
-                style={{ float: "right" }}
-              />
-            </li>
-            {openDropdown.vehicleManagement && (
-              <>
-                <li className="nav-item">
-                  <Link to="/Admin/fleet/statuses" className="nav-link">
-                    <i className="nav-icon fas fa-car" />
-                    <p>Vehicle Registrations</p>
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/Admin/fleet" className="nav-link">
-                    <i className="nav-icon fas fa-clipboard-check" />
-                    <p>Manage fleet</p>
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/Admin/fleet/assignments" className="nav-link">
-                    <i className="nav-icon fas fa-user-tie" />
-                    <p>Driver Management</p>
-                  </Link>
-                </li>
-              </>
-            )}
+            {filteredSections.map((section) => {
+              const shouldOpen = isSearching ? true : openDropdown[section.key];
 
-            {/* Financial Management */}
-            <li
-              className="nav-header"
-              onClick={() => toggleDropdown("financialManagement")}
-              style={{ cursor: "pointer" }}
-            >
-              FINANCIAL MANAGEMENT
-              <i
-                className={`right fas fa-angle-${
-                  openDropdown.financialManagement ? "down" : "left"
-                }`}
-                style={{ float: "right" }}
-              />
-            </li>
-            {openDropdown.financialManagement && (
-              <>
-                <li className="nav-item">
-                  <Link to="/Admin/transactions" className="nav-link">
-                    <i className="nav-icon fas fa-money-bill-wave" />
-                    <p>Manage Financial Transactions</p>
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/Admin/loans" className="nav-link">
-                    <i className="nav-icon fas fa-hand-holding-usd" />
-                    <p>Loans</p>
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/Admin/savings" className="nav-link">
-                    <i className="nav-icon fas fa-piggy-bank" />
-                    <p>Savings</p>
-                  </Link>
-                </li>
-              </>
-            )}
-
-            {/* Reports */}
-            <li
-              className="nav-header"
-              onClick={() => toggleDropdown("reports")}
-              style={{ cursor: "pointer" }}
-            >
-              REPORTS
-              <i
-                className={`right fas fa-angle-${
-                  openDropdown.reports ? "down" : "left"
-                }`}
-                style={{ float: "right" }}
-              />
-            </li>
-            {openDropdown.reports && (
-              <>
-                <li className="nav-item">
-                  <Link
-                    to="/Admin/reports/user-details"
-                    className="nav-link"
+              return (
+                <React.Fragment key={section.key}>
+                  <li
+                    className="nav-header"
+                    onClick={() => toggleDropdown(section.key)}
+                    style={{ cursor: isSearching ? "default" : "pointer" }}
                   >
-                    <i className="nav-icon fas fa-file-alt" />
-                    <p>Users</p>
-                  </Link>
-                </li>
+                    {section.title}
+                    <i
+                      className={`right fas fa-angle-${shouldOpen ? "down" : "left"}`}
+                      style={{ float: "right" }}
+                    />
+                  </li>
+
+                  {shouldOpen &&
+                    section.items.map((item) => (
+                      <li className="nav-item" key={item.to}>
+                        <Link to={item.to} className="nav-link">
+                          <i className={`nav-icon ${item.icon}`} />
+                          <p>{item.label}</p>
+                        </Link>
+                      </li>
+                    ))}
+                </React.Fragment>
+              );
+            })}
+
+            {isSearching &&
+              !dashboardVisible &&
+              filteredSections.length === 0 && (
                 <li className="nav-item">
-                  <Link
-                    to="/Admin/reports/vehicle-details"
-                    className="nav-link"
-                  >
-                    <i className="nav-icon fas fa-file-alt" />
-                    <p>Vehicles</p>
-                  </Link>
+                  <div className="nav-link text-muted">
+                    <i className="nav-icon fas fa-search" />
+                    <p>No matching menu found</p>
+                  </div>
                 </li>
-                <li className="nav-item">
-                  <Link to="/Admin/reports/financial" className="nav-link">
-                    <i className="nav-icon fas fa-file-alt" />
-                    <p>Financials</p>
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link
-                    to="/Admin/reports/compliance"
-                    className="nav-link"
-                  >
-                    <i className="nav-icon fas fa-file-alt" />
-                    <p>Compliance Report</p>
-                  </Link>
-                </li>
-              </>
-            )}
+              )}
           </ul>
         </nav>
-        {/* /.sidebar-menu */}
       </div>
-      {/* /.sidebar */}
     </aside>
   );
 }

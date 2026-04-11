@@ -10,6 +10,7 @@ import { format } from "date-fns";
 function UserDetails() {
   const { userId } = useParams();
   const [user, setUser] = useState({});
+  const [roles, setRoles] = useState([]);
   const [matatus, setMatatus] = useState([]);
   const [totalSavings, setTotalSavings] = useState(0);
   const [totalLoans, setTotalLoans] = useState(0);
@@ -18,6 +19,7 @@ function UserDetails() {
   useEffect(() => {
     fetchUserDetails();
     fetchMatatuDetails();
+    fetchRoles();
   }, []);
 
   useEffect(() => {
@@ -39,7 +41,7 @@ function UserDetails() {
   const fetchMatatuDetails = async () => {
     try {
       const { data } = await axiosInstance.get(
-        `/matatus/userMatatus/${userId}`
+        `/matatus/userMatatus/${userId}`,
       );
       setMatatus(data);
     } catch (err) {
@@ -50,11 +52,40 @@ function UserDetails() {
   const fetchRoles = async () => {
     try {
       const response = await axiosInstance.get("/roles");
-      const roles = await response.data;
-      setRoles(roles);
+      const rolesData = Array.isArray(response.data) ? response.data : [];
+      const filteredRoles = rolesData
+        .map((role) => ({
+          id: role.id ?? role.role_id,
+          name: role.name ?? role.role_name,
+        }))
+        .filter((role) => String(role.name || "").toLowerCase() !== "staff");
+      setRoles(filteredRoles);
     } catch (error) {
       console.error("Error fetching roles:", error);
     }
+  };
+
+  const formatRolesDisplay = (rolesValue) => {
+    if (Array.isArray(rolesValue)) {
+      const filteredRoles = rolesValue.filter(
+        (role) => String(role || "").toLowerCase() !== "staff",
+      );
+      return filteredRoles.length > 0
+        ? filteredRoles.join(", ")
+        : "No role assigned";
+    }
+
+    if (typeof rolesValue === "string") {
+      const filteredRoles = rolesValue
+        .split(",")
+        .map((role) => role.trim())
+        .filter((role) => role && role.toLowerCase() !== "staff");
+      return filteredRoles.length > 0
+        ? filteredRoles.join(", ")
+        : "No role assigned";
+    }
+
+    return rolesValue || "No role assigned";
   };
 
   const calculateTotals = (matatus) => {
@@ -248,7 +279,7 @@ function UserDetails() {
                 <h5>
                   {user.first_name} {user.last_name}
                 </h5>
-                <h6>{user.roles}</h6>
+                <h6>{formatRolesDisplay(user.roles)}</h6>
                 <p>
                   Status: <strong>{user.status}</strong>
                 </p>
@@ -308,7 +339,7 @@ function UserDetails() {
                         ["Name", `${user.first_name} ${user.last_name}`],
                         ["Email", user.email],
                         ["Phone", user.phone],
-                        ["Role", user.roles],
+                        ["Role", formatRolesDisplay(user.roles)],
                         ["Gender", user.gender],
                         ["Address", user.address],
                       ].map(([label, value]) => (
@@ -353,14 +384,10 @@ function UserDetails() {
                             <td>
                               {format(
                                 new Date(m.insurance_expiry),
-                                "yyyy-MM-dd"
+                                "yyyy-MM-dd",
                               )}
                             </td>
-                            <td>
-                              {m.driver_first_name
-                                ? `${m.driver_first_name} ${m.driver_last_name}`
-                                : "Not Assigned"}
-                            </td>
+                            <td>{m.driver_full_name || "Unassigned"}</td>
                           </tr>
                         ))}
                       </tbody>

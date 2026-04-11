@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { format, isBefore, addDays } from 'date-fns';
-import { exportData, printData } from '../../utils/export';
-import axiosInstance from '../../context/axiosInstance';
+import React, { useState, useEffect } from "react";
+import { format, isBefore, addDays } from "date-fns";
+import { exportData, printData } from "../../utils/export";
+import axiosInstance from "../../context/axiosInstance";
 
 const MatatuReport = () => {
   const [matatuDetails, setMatatuDetails] = useState([]);
@@ -19,26 +19,26 @@ const MatatuReport = () => {
   useEffect(() => {
     (async () => {
       try {
-        const resp = await axiosInstance.get('/reports/matatuDetails');
+        const resp = await axiosInstance.get("/reports/matatuDetails");
         setMatatuDetails(resp.data);
       } catch (err) {
-        console.error('Error fetching matatu data:', err);
+        console.error("Error fetching matatu data:", err);
       }
     })();
   }, []);
 
-  const toggleDropdown = () => setDropdownOpen(o => !o);
+  const toggleDropdown = () => setDropdownOpen((o) => !o);
 
-  const handleFilterChange = key =>
-    setFilters(f => ({ ...f, [key]: !f[key] }));
+  const handleFilterChange = (key) =>
+    setFilters((f) => ({ ...f, [key]: !f[key] }));
 
   const applyFilters = () => setDropdownOpen(false);
 
-  const filtered = matatuDetails.filter(m => {
+  const filtered = matatuDetails.filter((m) => {
     if (filters.loan && m.loan <= 0) return false;
-    if (filters.statusActive && m.status !== 'active') return false;
-    if (filters.statusInactive && m.status !== 'inactive') return false;
-    if (filters.statusSuspended && m.status !== 'suspended') return false;
+    if (filters.statusActive && m.status !== "active") return false;
+    if (filters.statusInactive && m.status !== "inactive") return false;
+    if (filters.statusSuspended && m.status !== "suspended") return false;
     if (
       filters.insuranceExpiryDue &&
       isBefore(new Date(m.insurance_expiry), addDays(new Date(), 7))
@@ -50,20 +50,19 @@ const MatatuReport = () => {
   });
 
   const columns = [
-    { header: 'Owner Name',      field: 'owner_first_name' }, // render full name manually
-    { header: 'Plate Number',    field: 'number_plate' },
-    { header: 'Status',          field: 'status' },
-    { header: 'Insurance Expiry',field: 'insurance_expiry' },
-    { header: 'Loan (KES)',      field: 'loan' },
-    { header: 'Savings (KES)',   field: 'savings' },
-    { header: 'Driver',          field: 'driver_first_name' }, // render manually
+    { header: "Owner Name", field: "owner_first_name" }, // render full name manually
+    { header: "Plate Number", field: "number_plate" },
+    { header: "Status", field: "status" },
+    { header: "Insurance Expiry", field: "insurance_expiry" },
+    { header: "Loan (KES)", field: "loan" },
+    { header: "Savings (KES)", field: "savings" },
+    { header: "Driver", field: "driver_full_name" }, // render manually
   ];
 
   return (
     <div className="content-wrapper">
       <section className="content">
         <div className="container-fluid">
-
           {/* Filter Card */}
           <div className="row mb-3">
             <div className="col-md-6">
@@ -76,7 +75,7 @@ const MatatuReport = () => {
                     className="btn btn-secondary mb-3"
                     onClick={toggleDropdown}
                   >
-                    {dropdownOpen ? 'Hide Filters' : 'Show Filters'}
+                    {dropdownOpen ? "Hide Filters" : "Show Filters"}
                   </button>
                   {dropdownOpen && (
                     <div className="p-2 border rounded">
@@ -92,14 +91,22 @@ const MatatuReport = () => {
                           <label className="form-check-label" htmlFor={key}>
                             {(() => {
                               switch (key) {
-                                case 'loan': return 'Has Loan';
-                                case 'statusActive': return 'Active Status';
-                                case 'statusInactive': return 'Inactive Status';
-                                case 'statusSuspended': return 'Suspended';
-                                case 'insuranceExpiryDue': return 'Insurance Expiry ≤1wk';
-                                case 'zeroSavings': return 'Zero Savings';
-                                case 'loanMoreThanSavings': return 'Loan > Savings';
-                                default: return key;
+                                case "loan":
+                                  return "Has Loan";
+                                case "statusActive":
+                                  return "Active Status";
+                                case "statusInactive":
+                                  return "Inactive Status";
+                                case "statusSuspended":
+                                  return "Suspended";
+                                case "insuranceExpiryDue":
+                                  return "Insurance Expiry ≤1wk";
+                                case "zeroSavings":
+                                  return "Zero Savings";
+                                case "loanMoreThanSavings":
+                                  return "Loan > Savings";
+                                default:
+                                  return key;
                               }
                             })()}
                           </label>
@@ -125,12 +132,12 @@ const MatatuReport = () => {
                 <div className="card-header d-flex justify-content-between align-items-center">
                   <h3 className="card-title">Matatu Details</h3>
                   <div className="btn-group">
-                    {['txt','csv','xlsx','pdf'].map(type => (
+                    {["txt", "csv", "xlsx", "pdf"].map((type) => (
                       <button
                         key={type}
                         className="btn btn-info btn-sm"
                         onClick={() =>
-                          exportData(type, filtered, columns, 'Matatu Details')
+                          exportData(type, filtered, columns, "Matatu Details")
                         }
                       >
                         <i className="fas fa-download"></i> {type.toUpperCase()}
@@ -160,16 +167,23 @@ const MatatuReport = () => {
                     <tbody>
                       {filtered.map((m, i) => (
                         <tr key={i}>
-                          <td>{m.owner_first_name} {m.owner_last_name}</td>
+                          <td>
+                            {m.owner_first_name} {m.owner_last_name}
+                          </td>
                           <td>{m.number_plate}</td>
-                          <td>{m.status.charAt(0).toUpperCase() + m.status.slice(1)}</td>
-                          <td>{format(new Date(m.insurance_expiry), 'yyyy-MM-dd')}</td>
+                          <td>
+                            {m.status.charAt(0).toUpperCase() +
+                              m.status.slice(1)}
+                          </td>
+                          <td>
+                            {format(new Date(m.insurance_expiry), "yyyy-MM-dd")}
+                          </td>
                           <td>{m.loan.toLocaleString()}</td>
                           <td>{m.savings.toLocaleString()}</td>
                           <td>
-                            {m.driver_first_name
-                              ? `${m.driver_first_name} ${m.driver_last_name}`
-                              : 'Not Assigned'}
+                            {m.driver_full_name
+                              ? m.driver_full_name
+                              : "Unassigned"}
                           </td>
                         </tr>
                       ))}
@@ -178,10 +192,14 @@ const MatatuReport = () => {
                       <tr>
                         <th colSpan="4">Totals</th>
                         <th>
-                          {filtered.reduce((sum, m) => sum + m.loan, 0).toLocaleString()}
+                          {filtered
+                            .reduce((sum, m) => sum + m.loan, 0)
+                            .toLocaleString()}
                         </th>
                         <th>
-                          {filtered.reduce((sum, m) => sum + m.savings, 0).toLocaleString()}
+                          {filtered
+                            .reduce((sum, m) => sum + m.savings, 0)
+                            .toLocaleString()}
                         </th>
                         <th></th>
                       </tr>
@@ -191,7 +209,6 @@ const MatatuReport = () => {
               </div>
             </div>
           </div>
-
         </div>
       </section>
     </div>

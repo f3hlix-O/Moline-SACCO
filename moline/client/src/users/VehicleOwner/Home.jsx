@@ -30,6 +30,25 @@ function VehicleOwnerHome() {
     }
   }, [ownerInfo]);
 
+  // Refetch loan total when page becomes visible (e.g., after repayment processing)
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (!document.hidden) {
+        try {
+          await fetchTotalLoans();
+          await fetchTotalSavings();
+        } catch (err) {
+          console.error("Error refetching totals on visibility change:", err);
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   const fetchTotalVehicles = async () => {
     try {
       const [userInfo, matatus] = await Promise.all([
@@ -95,7 +114,7 @@ function VehicleOwnerHome() {
   };
 
   return (
-    <div className="content-wrapper">
+    <div className="page-content">
       <div className="content-header">
         <div className="container-fluid">
           <div className="row mb-2">
@@ -285,7 +304,6 @@ function VehicleOwnerHome() {
                           <th>daily operations</th>
                           <th>Insurance</th>
                           <th>Savings</th>
-                          <th>Loan</th>
                           <th>Date</th>
                         </tr>
                       </thead>
@@ -304,7 +322,6 @@ function VehicleOwnerHome() {
                               <td>{payment.operations}</td>
                               <td>{payment.insurance}</td>
                               <td>{payment.savings}</td>
-                              <td>{payment.loan}</td>
                               <td>
                                 {new Date(
                                   payment.created_at,
@@ -314,7 +331,7 @@ function VehicleOwnerHome() {
                           ))
                         ) : (
                           <tr>
-                            <td colSpan="7">No payments found</td>
+                            <td colSpan="6">No payments found</td>
                           </tr>
                         )}
                       </tbody>

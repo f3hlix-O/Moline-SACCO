@@ -87,6 +87,12 @@ function ContactSupport({ show, onClose }) {
           message: "",
           attachment: null,
         });
+        // Clear persisted draft after successful submission
+        try {
+          sessionStorage.removeItem("contactSupportForm");
+        } catch (err) {
+          /* ignore */
+        }
         onClose(); // Close the modal after successful submission
       }
     } catch (error) {
@@ -108,11 +114,39 @@ function ContactSupport({ show, onClose }) {
     }
   };
 
+  // Persist draft to sessionStorage so reopening preserves user input
+  React.useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("contactSupportForm");
+      if (saved) setFormData(JSON.parse(saved));
+    } catch (err) {
+      // ignore parse errors
+    }
+  }, []);
+
+  // Save draft on every change
+  React.useEffect(() => {
+    try {
+      sessionStorage.setItem("contactSupportForm", JSON.stringify(formData));
+    } catch (err) {
+      // ignore storage errors
+    }
+  }, [formData]);
+
+  // Close on Escape key when visible
+  React.useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (show) window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [show, onClose]);
+
   if (!show) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h5 className="modal-title">Contact Support</h5>
           <button

@@ -27,7 +27,22 @@ function Login() {
       if (response.ok) {
         const data = await response.json();
         if (data.user && data.user.status === "approved") {
-          login(data.token);
+          const profileResponse = await fetch(
+            "http://localhost:5000/api/users/userDetails",
+            {
+              headers: {
+                Authorization: `Bearer ${data.token}`,
+              },
+            },
+          );
+          const profile = profileResponse.ok
+            ? await profileResponse.json()
+            : null;
+          login(
+            data.token,
+            profile,
+            data.user.role_id === 202 ? "admin" : "user",
+          );
           Swal.fire({
             icon: "success",
             title: data.message,
@@ -53,7 +68,22 @@ function Login() {
               break;
           }
         } else if (data.user && data.user.status === "pending") {
-          login(data.token);
+          const profileResponse = await fetch(
+            "http://localhost:5000/api/users/userDetails",
+            {
+              headers: {
+                Authorization: `Bearer ${data.token}`,
+              },
+            },
+          );
+          const profile = profileResponse.ok
+            ? await profileResponse.json()
+            : null;
+          login(
+            data.token,
+            profile,
+            data.user.role_id === 202 ? "admin" : "user",
+          );
           Swal.fire({
             icon: "warning",
             title: "Account Pending",

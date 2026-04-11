@@ -85,7 +85,7 @@ function VehicleRegistrationForm() {
   };
 
   return (
-    <div className="content-wrapper">
+    <div className="page-content">
       <div className="row">
         <section className="text-center">
           <div

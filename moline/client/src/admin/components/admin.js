@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { fetchApprovedUsers } from "../components/users";
+import {
+  fetchApprovedUsers,
+  fetchWithdrawalRequests,
+} from "../components/users";
 import { fetchMatatuDetais } from "../components/matatus";
 import { fetchFinancialDetails } from "../components/financial";
 import { Pie, Bar } from "react-chartjs-2";
@@ -33,6 +36,7 @@ function AdminPanel() {
   const [matatus, setMatatus] = useState([]);
   const [financialDetails, setFinancialDetails] = useState([]);
   const [approvedUsers, setApprovedUsers] = useState([]);
+  const [withdrawals, setWithdrawals] = useState([]);
   const [userStats, setUserStats] = useState({});
   const [vehicleStats, setVehicleStats] = useState({});
   const [financialStats, setFinancialStats] = useState({});
@@ -47,6 +51,9 @@ function AdminPanel() {
 
       const approvedUsersData = await fetchApprovedUsers();
       setApprovedUsers(approvedUsersData);
+
+      const withdrawalData = await fetchWithdrawalRequests();
+      setWithdrawals(withdrawalData || []);
 
       const userStats = {
         total: approvedUsersData.length,
@@ -160,9 +167,40 @@ function AdminPanel() {
   const financialChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top",
+        labels: {
+          usePointStyle: true,
+          boxWidth: 10,
+          padding: 16,
+        },
+      },
+      tooltip: {
+        backgroundColor: "rgba(15, 23, 42, 0.95)",
+        padding: 12,
+        titleColor: "#ffffff",
+        bodyColor: "#e2e8f0",
+        displayColors: true,
+      },
+    },
     scales: {
       y: {
         beginAtZero: true,
+        grid: {
+          color: "rgba(148, 163, 184, 0.18)",
+        },
+        ticks: {
+          color: "#64748b",
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          color: "#64748b",
+        },
       },
     },
   };
@@ -207,7 +245,7 @@ function AdminPanel() {
                   </div>
                   <div className="card-footer">
                     <Link
-                      to="/Admin/users"
+                      to="/admin/users"
                       className="btn btn-sm btn-secondary"
                     >
                       Manage Users
@@ -227,7 +265,7 @@ function AdminPanel() {
                   </div>
                   <div className="card-footer">
                     <Link
-                      to="/Admin/fleet"
+                      to="/admin/fleet"
                       className="btn btn-sm btn-secondary"
                     >
                       Manage Vehicles
@@ -236,40 +274,67 @@ function AdminPanel() {
                 </div>
               </div>
             </div>
-            {/* Financial Overview */}
             <div className="row">
               <div className="col-md-12">
-                <div className="card card-danger">
-                  <div className="card-header">
-                    <h3 className="card-title">Financial Overview</h3>
+                <div className="card shadow-sm border-0 rounded-4 overflow-hidden">
+                  <div
+                    className="card-header d-flex flex-column flex-md-row align-items-md-center justify-content-between"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #0f766e 0%, #1d4ed8 100%)",
+                      color: "#ffffff",
+                      borderBottom: "0",
+                    }}
+                  >
+                    <div>
+                      <h3 className="card-title mb-1">
+                        Monthly Loans and Savings
+                      </h3>
+                      <small style={{ color: "rgba(255,255,255,0.85)" }}>
+                        A month-by-month view of lending and savings activity.
+                      </small>
+                    </div>
+                    <span className="badge bg-light text-dark px-3 py-2 mt-3 mt-md-0">
+                      Live portfolio trend
+                    </span>
                   </div>
-                  <div className="card-body">
-                    <p>Total income: KES {financialStats.totalIncome}</p>
-                    <p>Total expenses: KES {financialStats.totalExpenses}</p>
-                    <p>
-                      Outstanding loans: KES {financialStats.outstandingLoans}
-                    </p>
-                    <p>Total savings: KES {financialStats.totalSavings}</p>
-                  </div>
-                  <div className="card-footer">
-                    <Link
-                      to="/Admin/financials"
-                      className="btn btn-sm btn-secondary"
+                  <div className="card-body" style={{ background: "#f8fafc" }}>
+                    <div className="row g-3 mb-4">
+                      <div className="col-md-4">
+                        <div className="rounded-4 bg-white border p-3 h-100">
+                          <div className="text-uppercase text-muted small mb-1">
+                            Total savings
+                          </div>
+                          <div className="fw-bold fs-4 text-success">
+                            KES {financialStats.totalSavings}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-4">
+                        <div className="rounded-4 bg-white border p-3 h-100">
+                          <div className="text-uppercase text-muted small mb-1">
+                            Outstanding loans
+                          </div>
+                          <div className="fw-bold fs-4 text-primary">
+                            KES {financialStats.outstandingLoans}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-4">
+                        <div className="rounded-4 bg-white border p-3 h-100">
+                          <div className="text-uppercase text-muted small mb-1">
+                            Monthly snapshot
+                          </div>
+                          <div className="fw-bold fs-4 text-dark">
+                            Loans vs savings
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      className="bg-white border rounded-4 p-3 p-md-4"
+                      style={{ height: "420px" }}
                     >
-                      Manage Financials
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-md-12">
-                <div className="card card-success">
-                  <div className="card-header">
-                    <h3 className="card-title">Monthly Loans and Savings</h3>
-                  </div>
-                  <div className="card-body">
-                    <div style={{ height: "400px" }}>
                       <Bar
                         data={financialChartData}
                         options={financialChartOptions}
@@ -289,18 +354,23 @@ function AdminPanel() {
                   <div className="card-body">
                     <ul className="nav flex-column">
                       <li className="nav-item">
-                        <Link to="/Admin/users/approve" className="nav-link">
+                        <Link to="/admin/users/approve" className="nav-link">
                           Approve or Reject User Registrations
                         </Link>
                       </li>
                       <li className="nav-item">
-                        <Link to="/Admin/users/roles" className="nav-link">
+                        <Link to="/admin/users/roles" className="nav-link">
                           Assign or Modify User Roles
                         </Link>
                       </li>
                       <li className="nav-item">
-                        <Link to="/Admin/users/profiles" className="nav-link">
+                        <Link to="/admin/users/profiles" className="nav-link">
                           Access User Profiles
+                        </Link>
+                      </li>
+                      <li className="nav-item">
+                        <Link to="/admin/users" className="nav-link">
+                          View Withdrawal Submissions
                         </Link>
                       </li>
                     </ul>
@@ -315,18 +385,18 @@ function AdminPanel() {
                   <div className="card-body">
                     <ul className="nav flex-column">
                       <li className="nav-item">
-                        <Link to="/Admin/fleet" className="nav-link">
+                        <Link to="/admin/fleet" className="nav-link">
                           View and Manage Vehicle Registrations
                         </Link>
                       </li>
                       <li className="nav-item">
-                        <Link to="/Admin/fleet/statuses" className="nav-link">
+                        <Link to="/admin/fleet/statuses" className="nav-link">
                           Monitor Vehicle Statuses
                         </Link>
                       </li>
                       <li className="nav-item">
                         <Link
-                          to="/Admin/fleet/assignments"
+                          to="/admin/fleet/assignments"
                           className="nav-link"
                         >
                           Assign or Change Drivers and Conductors
@@ -344,17 +414,12 @@ function AdminPanel() {
                   <div className="card-body">
                     <ul className="nav flex-column">
                       <li className="nav-item">
-                        <Link to="/Admin/transactions" className="nav-link">
-                          Manage Financial Transactions
-                        </Link>
-                      </li>
-                      <li className="nav-item">
-                        <Link to="/Admin/loans" className="nav-link">
+                        <Link to="/admin/loans" className="nav-link">
                           Approve Loan Applications
                         </Link>
                       </li>
                       <li className="nav-item">
-                        <Link to="/Admin/savings" className="nav-link">
+                        <Link to="/admin/savings" className="nav-link">
                           Monitor Savings and Loan Statuses
                         </Link>
                       </li>
@@ -363,31 +428,58 @@ function AdminPanel() {
                 </div>
               </div>
             </div>
-            {/* Reports Section */}
             <div className="row">
               <div className="col-md-12">
-                <div className="card card-primary">
+                <div className="card card-info shadow-sm">
                   <div className="card-header">
-                    <h3 className="card-title">Reports Section</h3>
+                    <h3 className="card-title">
+                      Latest Withdrawal Submissions
+                    </h3>
                   </div>
-                  <div className="card-body">
-                    <ul className="nav flex-column">
-                      <li className="nav-item">
-                        <Link to="/reports/users" className="nav-link">
-                          Users Reports
-                        </Link>
-                      </li>
-                      <li className="nav-item">
-                        <Link to="/reports/vehicles" className="nav-link">
-                          Fleet Reports
-                        </Link>
-                      </li>
-                      <li className="nav-item">
-                        <Link to="/reports/financials" className="nav-link">
-                          Financial Reports
-                        </Link>
-                      </li>
-                    </ul>
+                  <div className="card-body table-responsive p-0">
+                    <table className="table table-striped table-hover align-middle text-nowrap mb-0">
+                      <thead className="table-light">
+                        <tr>
+                          <th>ID</th>
+                          <th>User</th>
+                          <th>Reason</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {withdrawals.slice(0, 5).map((withdrawal) => (
+                          <tr key={withdrawal.withdrawal_id}>
+                            <td className="fw-semibold">
+                              #{withdrawal.withdrawal_id}
+                            </td>
+                            <td>{withdrawal.user_name}</td>
+                            <td>{withdrawal.reason}</td>
+                            <td>
+                              <span
+                                className={`badge ${withdrawal.status === "approved" ? "bg-success" : withdrawal.status === "rejected" ? "bg-danger" : "bg-warning text-dark"}`}
+                              >
+                                {(withdrawal.status || "pending").toUpperCase()}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                        {withdrawals.length === 0 && (
+                          <tr>
+                            <td colSpan="4" className="text-center py-3">
+                              No withdrawal submissions yet.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="card-footer">
+                    <Link
+                      to="/admin/users"
+                      className="btn btn-sm btn-secondary"
+                    >
+                      Open Full User Management View
+                    </Link>
                   </div>
                 </div>
               </div>
