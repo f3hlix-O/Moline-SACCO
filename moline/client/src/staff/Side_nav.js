@@ -27,7 +27,7 @@ function Sidenav() {
       {/* Brand Logo */}
       <Link to="#" className="brand-link">
         <img src={matisLogo} alt="MaTIS Logo" className="brand-image img-circle elevation-3" style={{ opacity: '.8' }} />
-        <span className="brand-text font-weight-light">Vuka SACCO system</span>
+        <span className="brand-text font-weight-light">Moline SACCO system</span>
       </Link>
       {/* Sidebar */}
       <div className="sidebar">

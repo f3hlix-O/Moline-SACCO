@@ -74,6 +74,30 @@ DEFAULT CHARACTER SET = utf8mb4;
 
 
 -- -----------------------------------------------------
+-- Table `vuka`.`withdrawals`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `vuka`.`withdrawals` (
+  `withdrawal_id` INT NOT NULL AUTO_INCREMENT,
+  `user_id` INT NOT NULL,
+  `user_name` VARCHAR(255) NOT NULL,
+  `amount` DECIMAL(10,2) NOT NULL DEFAULT 0,
+  `reason` TEXT NOT NULL,
+  `vehicle_reference` VARCHAR(255) NULL DEFAULT NULL,
+  `account_reference` VARCHAR(255) NULL DEFAULT NULL,
+  `status` ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
+  `submitted_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`withdrawal_id`),
+  INDEX `idx_withdrawals_user_id` (`user_id` ASC) VISIBLE,
+  CONSTRAINT `withdrawals_user_id`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `vuka`.`users` (`user_id`)
+    ON DELETE CASCADE)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+-- -----------------------------------------------------
 -- Table `vuka`.`matatus`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `vuka`.`matatus` (
@@ -100,6 +124,39 @@ CREATE TABLE IF NOT EXISTS `vuka`.`matatus` (
     REFERENCES `vuka`.`users` (`user_id`))
 ENGINE = InnoDB
 AUTO_INCREMENT = 354
+DEFAULT CHARACTER SET = utf8mb4;
+
+
+-- -----------------------------------------------------
+-- Table `vuka`.`drivers`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `vuka`.`drivers` (
+  `driver_id` INT NOT NULL AUTO_INCREMENT,
+  `owner_id` INT NOT NULL,
+  `vehicle_id` INT NULL DEFAULT NULL,
+  `full_name` VARCHAR(255) NOT NULL,
+  `phone` VARCHAR(20) NOT NULL,
+  `national_id` VARCHAR(50) NOT NULL,
+  `license_number` VARCHAR(100) NOT NULL,
+  `license_expiry_date` DATE NOT NULL,
+  `address` VARCHAR(255) NOT NULL,
+  `status` ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`driver_id`),
+  UNIQUE INDEX `uniq_driver_national_id` (`national_id` ASC) VISIBLE,
+  UNIQUE INDEX `uniq_driver_license_number` (`license_number` ASC) VISIBLE,
+  UNIQUE INDEX `uniq_driver_vehicle_id` (`vehicle_id` ASC) VISIBLE,
+  INDEX `idx_driver_owner_id` (`owner_id` ASC) VISIBLE,
+  CONSTRAINT `drivers_owner_id`
+    FOREIGN KEY (`owner_id`)
+    REFERENCES `vuka`.`users` (`user_id`)
+    ON DELETE CASCADE,
+  CONSTRAINT `drivers_vehicle_id`
+    FOREIGN KEY (`vehicle_id`)
+    REFERENCES `vuka`.`matatus` (`matatu_id`)
+    ON DELETE SET NULL)
+ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4;
 
 

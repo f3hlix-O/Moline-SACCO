@@ -1,11 +1,44 @@
-const { pool } = require('../config/database');
-const { sendApprovalEmail, sendDisapprovalEmail } = require('../utils/mailer');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const {secretKey} = process.env;
+const { pool } = require("../config/database");
+const { sendApprovalEmail, sendDisapprovalEmail } = require("../utils/mailer");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { secretKey } = process.env;
+
+const buildUserResponse = async (userId) => {
+  const rows = await new Promise((resolve, reject) => {
+    pool.query(
+      `
+        SELECT user_id, first_name, last_name, email, phone, ID_image, status
+        FROM Users
+        WHERE user_id = ?
+        LIMIT 1
+      `,
+      [userId],
+      (err, results) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(results || []);
+      },
+    );
+  });
+
+  if (!rows.length) {
+    return null;
+  }
+
+  const user = rows[0];
+  return {
+    ...user,
+    ID_image: user.ID_image
+      ? `http://localhost:5000/uploads/${user.ID_image}`
+      : null,
+  };
+};
 
 const getApprovedUsers = (req, res) => {
-    const sql = `
+  const sql = `
         SELECT 
             u.user_id, 
             u.first_name, 
@@ -22,69 +55,130 @@ const getApprovedUsers = (req, res) => {
         LEFT JOIN 
             roles r ON ur.role_id = r.role_id
         WHERE 
-            u.status = 'approved'
+          LOWER(u.status) = 'approved'
         GROUP BY 
             u.user_id
     `;
 
-    pool.query(sql, (err, results) => {
-        if (err) {
-            console.error('Error fetching approved users:', err);
-            res.status(500).json({ error: 'An error occurred while fetching approved users' });
-            return;
-        }
+  pool.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching approved users:", err);
+      res
+        .status(500)
+        .json({ error: "An error occurred while fetching approved users" });
+      return;
+    }
 
-        const usersWithImageURLs = results.map(user => ({
-            ...user,
-            ID_image: user.ID_image ? `http://localhost:5000/uploads/${user.ID_image}` : null,
-        }));
-        
-        res.json(usersWithImageURLs);
-    });
+    const usersWithImageURLs = results.map((user) => ({
+      ...user,
+      ID_image: user.ID_image
+        ? `http://localhost:5000/uploads/${user.ID_image}`
+        : null,
+    }));
+
+    res.json(usersWithImageURLs);
+  });
 };
 
 const getPendingUsers = (req, res) => {
-    const sql = 'SELECT user_id, first_name, last_name, email, ID_image FROM Users WHERE status = "pending"';
-    pool.query(sql, (err, results) => {
-        if (err) {
-            console.error('Error fetching users:', err);
-            res.status(500).json({ error: 'An error occurred while fetching users' });
-            return;
-        }
-        const usersWithImageURLs = results.map(user => ({
-            ...user,
-            ID_image: user.ID_image ? `http://localhost:5000/uploads/${user.ID_image}` : null,
-        }));
-        res.json(usersWithImageURLs);
-    });
+  const sql =
+    'SELECT user_id, first_name, last_name, email, ID_image, status FROM Users WHERE LOWER(status) = "pending"';
+  pool.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching users:", err);
+      res.status(500).json({ error: "An error occurred while fetching users" });
+      return;
+    }
+    const usersWithImageURLs = results.map((user) => ({
+      ...user,
+      ID_image: user.ID_image
+        ? `http://localhost:5000/uploads/${user.ID_image}`
+        : null,
+    }));
+    res.json(usersWithImageURLs);
+  });
 };
 
 const approveUser = (req, res) => {
-    const { userId, userEmail } = req.body;
-    const sql = 'UPDATE Users SET status = "approved" WHERE user_id = ?';
-    pool.query(sql, [userId], (err, results) => {
-        if (err) {
-            console.error('Error approving user:', err);
-            res.status(500).json({ error: 'An error occurred while approving the user' });
-            return;
-        }
-        sendApprovalEmail(userEmail); // Send approval email
-        res.json({ message: 'User approved successfully' });
-    });
+  const { userId, userEmail, email } = req.body;
+  const sql = 'UPDATE Users SET status = "approved" WHERE user_id = ?';
+  pool.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error("Error approving user:", err);
+      res
+        .status(500)
+        .json({ error: "An error occurred while approving the user" });
+      return;
+    }
+    if (!results || results.affectedRows === 0) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    const recipientEmail = userEmail || email;
+    if (recipientEmail) {
+      sendApprovalEmail(recipientEmail); // Send approval email
+    }
+
+    buildUserResponse(userId)
+      .then((user) => {
+        res.json({
+          success: true,
+          message: "User approved successfully",
+          status: "approved",
+          user,
+        });
+      })
+      .catch((lookupError) => {
+        console.error("Error loading approved user:", lookupError);
+        res.json({
+          success: true,
+          message: "User approved successfully",
+          status: "approved",
+        });
+      });
+  });
 };
 
 const disapproveUser = (req, res) => {
-    const { userId, userEmail } = req.body;
-    const sql = 'UPDATE Users SET status = "disapproved" WHERE user_id = ?';
-    pool.query(sql, [userId], (err, results) => {
-        if (err) {
-            console.error('Error disapproving user:', err);
-            res.status(500).json({ error: 'An error occurred while disapproving the user' });
-            return;
-        }
-        sendDisapprovalEmail(userEmail); // Send disapproval email
-        res.json({ message: 'User disapproved successfully' });
-    });
+  const { userId, userEmail, email } = req.body;
+  const sql = 'UPDATE Users SET status = "pending" WHERE user_id = ?';
+  pool.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error("Error disapproving user:", err);
+      res
+        .status(500)
+        .json({ error: "An error occurred while disapproving the user" });
+      return;
+    }
+    if (!results || results.affectedRows === 0) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    const recipientEmail = userEmail || email;
+    if (recipientEmail) {
+      sendDisapprovalEmail(recipientEmail); // Send disapproval email
+    }
+
+    buildUserResponse(userId)
+      .then((user) => {
+        res.json({
+          success: true,
+          message: "User moved back to pending successfully",
+          status: "pending",
+          user,
+        });
+      })
+      .catch((lookupError) => {
+        console.error("Error loading pending user:", lookupError);
+        res.json({
+          success: true,
+          message: "User moved back to pending successfully",
+          status: "pending",
+        });
+      });
+  });
 };
 
 const adminLogin = (req, res) => {
@@ -123,10 +217,52 @@ const adminLogin = (req, res) => {
   });
 };
 
+const getAllUserSavings = (req, res) => {
+  const sql = `
+        SELECT 
+            u.user_id,
+            CONCAT(u.first_name, ' ', u.last_name) AS name,
+            u.email,
+            u.phone,
+            COALESCE(SUM(s.amount), 0) AS totalSavings
+        FROM 
+            users u
+        LEFT JOIN 
+            savings s ON s.user_id = u.user_id OR s.matatu_id IN (SELECT m.matatu_id FROM matatus m WHERE m.owner_id = u.user_id)
+        GROUP BY 
+            u.user_id, u.first_name, u.last_name, u.email, u.phone
+        ORDER BY 
+            u.user_id
+    `;
+
+  pool.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching user savings:", err);
+      res
+        .status(500)
+        .json({ error: "An error occurred while fetching user savings" });
+      return;
+    }
+
+    const usersWithSavings = results.map((user) => ({
+      userId: user.user_id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      totalSavings: user.totalSavings,
+      savingsLabel:
+        user.totalSavings > 0 ? `KSh ${user.totalSavings}` : "NIL SAVINGS",
+    }));
+
+    res.json(usersWithSavings);
+  });
+};
+
 module.exports = {
-    getApprovedUsers,
-    getPendingUsers,
-    approveUser,
-    disapproveUser,
-    adminLogin,
+  getApprovedUsers,
+  getPendingUsers,
+  approveUser,
+  disapproveUser,
+  adminLogin,
+  getAllUserSavings,
 };

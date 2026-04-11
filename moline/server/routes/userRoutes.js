@@ -6,7 +6,8 @@ const verifyToken = require("../middleware/verifyToken");
 
 router.get("/", userController.getAllUsers);
 router.post("/check-email", userController.checkEmail);
-router.post("/signup", uploadSingle("id_image"), userController.signup);
+router.get("/by-staff/:staffNumber", userController.getUserByStaffNumber);
+router.post("/signup", uploadSingle("ID_image"), userController.signup);
 router.post("/login", userController.login);
 router.post("/reset-password", userController.resetPasswordByEmail);
 router.post("/reset-password/confirm", userController.resetPasswordConfirm);

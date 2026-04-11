@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { exportData, printData } from '../../utils/export';
-import axiosInstance from '../../context/axiosInstance';
-import { Form } from 'react-bootstrap';
+import React, { useState, useEffect } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { exportData, printData } from "../../utils/export";
+import axiosInstance from "../../context/axiosInstance";
+import { Form } from "react-bootstrap";
 
 const Profile = () => {
   const [approvedUsers, setApprovedUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [userRoles, setUserRoles] = useState({});
-  const [filterRole, setFilterRole] = useState('All');
+  const [filterRole, setFilterRole] = useState("All");
 
   // Fetch users and roles on mount
   useEffect(() => {
@@ -18,18 +18,20 @@ const Profile = () => {
 
   const fetchApprovedUsers = async () => {
     try {
-      const { data } = await axiosInstance.get('/admin/users-approved');
-      console.log('Approved Users:', data);
+      const { data } = await axiosInstance.get("/admin/users-approved");
+      console.log("Approved Users:", data);
       setApprovedUsers(data);
-      fetchUserRoles(data.map(u => u.user_id));
+      fetchUserRoles(data.map((u) => u.user_id));
     } catch (err) {
-      console.error('Error fetching approved users:', err);
+      console.error("Error fetching approved users:", err);
     }
   };
 
   const fetchUserRoles = async (userIds) => {
     try {
-      const { data } = await axiosInstance.post('/roles/user-roles', { userIds });
+      const { data } = await axiosInstance.post("/roles/user-roles", {
+        userIds,
+      });
       // Build map: { user_id: ['Admin','Staff', ...], ... }
       const map = data.reduce((acc, r) => {
         acc[r.user_id] = acc[r.user_id] ?? [];
@@ -38,44 +40,45 @@ const Profile = () => {
       }, {});
       setUserRoles(map);
     } catch (err) {
-      console.error('Error fetching user roles:', err);
+      console.error("Error fetching user roles:", err);
     }
   };
 
   const fetchRoles = async () => {
     try {
-      const { data } = await axiosInstance.get('/roles');
+      const { data } = await axiosInstance.get("/roles");
       setRoles(data);
     } catch (err) {
-      console.error('Error fetching roles:', err);
+      console.error("Error fetching roles:", err);
     }
   };
 
   // Filter logic
-  const filteredUsers = filterRole === 'All'
-    ? approvedUsers
-    : approvedUsers.filter(u => userRoles[u.user_id]?.includes(filterRole));
+  const filteredUsers =
+    filterRole === "All"
+      ? approvedUsers
+      : approvedUsers.filter((u) => userRoles[u.user_id]?.includes(filterRole));
 
   // Prepare data for export: include a `roles` field
-  const exportList = filteredUsers.map(u => ({
-    first_name:     u.first_name,
-    last_name:      u.last_name,
-    email:          u.email,
-    phone:          u.phone,
-    roles:          (userRoles[u.user_id] || []).join(', '),
-    status:         u.status,
-    created_at:     u.created_at,
+  const exportList = filteredUsers.map((u) => ({
+    first_name: u.first_name,
+    last_name: u.last_name,
+    email: u.email,
+    phone: u.phone,
+    roles: (userRoles[u.user_id] || []).join(", "),
+    status: u.status,
+    created_at: u.created_at,
   }));
 
   // Define columns for export/print
   const columns = [
-    { header: 'First Name',   field: 'first_name' },
-    { header: 'Last Name',    field: 'last_name' },
-    { header: 'Email',        field: 'email' },
-    { header: 'Phone',        field: 'phone' },
-    { header: 'Roles',        field: 'roles' },
-    { header: 'Status',       field: 'status' },
-    { header: 'Created At',   field: 'created_at' },
+    { header: "First Name", field: "first_name" },
+    { header: "Last Name", field: "last_name" },
+    { header: "Email", field: "email" },
+    { header: "Phone", field: "phone" },
+    { header: "Roles", field: "roles" },
+    { header: "Status", field: "status" },
+    { header: "Created At", field: "created_at" },
   ];
 
   return (
@@ -93,10 +96,10 @@ const Profile = () => {
                 <Form.Control
                   as="select"
                   value={filterRole}
-                  onChange={e => setFilterRole(e.target.value)}
+                  onChange={(e) => setFilterRole(e.target.value)}
                 >
                   <option value="All">All</option>
-                  {roles.map(r => (
+                  {roles.map((r) => (
                     <option key={r.role_id} value={r.role_name}>
                       {r.role_name}
                     </option>
@@ -113,13 +116,17 @@ const Profile = () => {
         <div className="col-12">
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
-              <h3 className="card-title">Approved Users ({filteredUsers.length})</h3>
+              <h3 className="card-title">
+                Approved Users ({filteredUsers.length})
+              </h3>
               <div className="btn-group">
-                {['txt','csv','xlsx','pdf'].map(type => (
+                {["txt", "csv", "xlsx", "pdf"].map((type) => (
                   <button
                     key={type}
                     className="btn btn-info btn-sm"
-                    onClick={() => exportData(type, exportList, columns, 'Approved Users')}
+                    onClick={() =>
+                      exportData(type, exportList, columns, "Approved Users")
+                    }
                   >
                     <i className="fas fa-download"></i> {type.toUpperCase()}
                   </button>
@@ -146,13 +153,13 @@ const Profile = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map(u => (
+                  {filteredUsers.map((u) => (
                     <tr key={u.user_id}>
                       <td>{u.first_name}</td>
                       <td>{u.last_name}</td>
                       <td>{u.email}</td>
                       <td>{u.phone}</td>
-                      <td>{(userRoles[u.user_id] || []).join(', ')}</td>
+                      <td>{(userRoles[u.user_id] || []).join(", ")}</td>
                       <td>{u.status}</td>
                       <td>{new Date(u.created_at).toLocaleDateString()}</td>
                     </tr>

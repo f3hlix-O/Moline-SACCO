@@ -1,7 +1,7 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMinus, faTimes } from '@fortawesome/free-solid-svg-icons';
+import React from "react";
+import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMinus, faTimes } from "@fortawesome/free-solid-svg-icons";
 
 const PaymentStatus = () => {
   // Hard-coded data for demonstration
@@ -13,7 +13,7 @@ const PaymentStatus = () => {
       insurance: 1000,
       savings: 1000,
       loan: 0,
-      created_at: '2024-06-01T08:30:00Z',
+      created_at: "2024-06-01T08:30:00Z",
     },
     {
       payment_id: 2,
@@ -22,7 +22,7 @@ const PaymentStatus = () => {
       insurance: 1200,
       savings: 1300,
       loan: 0,
-      created_at: '2024-06-05T14:20:00Z',
+      created_at: "2024-06-05T14:20:00Z",
     },
     {
       payment_id: 3,
@@ -31,31 +31,31 @@ const PaymentStatus = () => {
       insurance: 1100,
       savings: 1200,
       loan: 0,
-      created_at: '2024-06-10T10:15:00Z',
+      created_at: "2024-06-10T10:15:00Z",
     },
   ];
 
   const userMatatus = [
     {
-      plate_number: 'KBA 123X',
+      plate_number: "KBA 123X",
       loan: 50000,
       savings: 15000,
       insurance: 5000,
-      insurance_expiry: '2024-12-31',
-      actions: ['Pay Insurance', 'Add Savings', 'Take Loan'],
+      insurance_expiry: "2024-12-31",
+      actions: ["Pay Insurance", "Add Savings", "Take Loan"],
     },
     {
-      plate_number: 'KCC 456Y',
+      plate_number: "KCC 456Y",
       loan: 0,
       savings: 20000,
       insurance: 6000,
-      insurance_expiry: '2024-11-15',
-      actions: ['Pay Insurance', 'Add Savings', 'Take Loan'],
+      insurance_expiry: "2024-11-15",
+      actions: ["Pay Insurance", "Add Savings", "Take Loan"],
     },
   ];
 
   return (
-    <div className="content-wrapper">
+    <div className="page-content">
       <div className="container mt-5">
         {/* Latest Payments Table */}
         <div className="row mb-4">
@@ -64,10 +64,18 @@ const PaymentStatus = () => {
               <div className="card-header bg-primary text-white">
                 <h3 className="card-title">Latest Payments</h3>
                 <div className="card-tools">
-                  <button type="button" className="btn btn-tool text-white" data-card-widget="collapse">
+                  <button
+                    type="button"
+                    className="btn btn-tool text-white"
+                    data-card-widget="collapse"
+                  >
                     <FontAwesomeIcon icon={faMinus} />
                   </button>
-                  <button type="button" className="btn btn-tool text-white" data-card-widget="remove">
+                  <button
+                    type="button"
+                    className="btn btn-tool text-white"
+                    data-card-widget="remove"
+                  >
                     <FontAwesomeIcon icon={faTimes} />
                   </button>
                 </div>
@@ -90,7 +98,10 @@ const PaymentStatus = () => {
                       {latestPayments.map((payment) => (
                         <tr key={payment.payment_id}>
                           <td>
-                            <Link to={`/users/payments/item/${payment.payment_id}`} className="text-decoration-none">
+                            <Link
+                              to={`/users/payments/item/${payment.payment_id}`}
+                              className="text-decoration-none"
+                            >
                               {payment.payment_id}
                             </Link>
                           </td>
@@ -98,8 +109,14 @@ const PaymentStatus = () => {
                           <td>KES {payment.operations}</td>
                           <td>KES {payment.insurance}</td>
                           <td>KES {payment.savings}</td>
-                          <td>{payment.loan > 0 ? `KES ${payment.loan}` : 'No Loan'}</td>
-                          <td>{new Date(payment.created_at).toLocaleDateString()}</td>
+                          <td>
+                            {payment.loan > 0
+                              ? `KES ${payment.loan}`
+                              : "No Loan"}
+                          </td>
+                          <td>
+                            {new Date(payment.created_at).toLocaleDateString()}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -107,10 +124,16 @@ const PaymentStatus = () => {
                 </div>
               </div>
               <div className="card-footer clearfix">
-                <Link to="/users/payments/new" className="btn btn-sm btn-info float-left">
+                <Link
+                  to="/users/payments/new"
+                  className="btn btn-sm btn-info float-left"
+                >
                   Make New Payment
                 </Link>
-                <Link to="/users/payments" className="btn btn-sm btn-secondary float-right">
+                <Link
+                  to="/users/payments"
+                  className="btn btn-sm btn-secondary float-right"
+                >
                   View All Transactions
                 </Link>
               </div>
@@ -125,10 +148,18 @@ const PaymentStatus = () => {
               <div className="card-header bg-success text-white">
                 <h3 className="card-title">Vehicle Management</h3>
                 <div className="card-tools">
-                  <button type="button" className="btn btn-tool text-white" data-card-widget="collapse">
+                  <button
+                    type="button"
+                    className="btn btn-tool text-white"
+                    data-card-widget="collapse"
+                  >
                     <FontAwesomeIcon icon={faMinus} />
                   </button>
-                  <button type="button" className="btn btn-tool text-white" data-card-widget="remove">
+                  <button
+                    type="button"
+                    className="btn btn-tool text-white"
+                    data-card-widget="remove"
+                  >
                     <FontAwesomeIcon icon={faTimes} />
                   </button>
                 </div>
@@ -150,10 +181,16 @@ const PaymentStatus = () => {
                       {userMatatus.map((matatu, index) => (
                         <tr key={index}>
                           <td>{matatu.plate_number}</td>
-                          <td>{matatu.loan > 0 ? `KES ${matatu.loan}` : 'No Loan'}</td>
+                          <td>
+                            {matatu.loan > 0 ? `KES ${matatu.loan}` : "No Loan"}
+                          </td>
                           <td>KES {matatu.savings}</td>
                           <td>KES {matatu.insurance}</td>
-                          <td>{new Date(matatu.insurance_expiry).toLocaleDateString()}</td>
+                          <td>
+                            {new Date(
+                              matatu.insurance_expiry,
+                            ).toLocaleDateString()}
+                          </td>
                           <td>
                             <div className="dropdown">
                               <button
@@ -166,9 +203,16 @@ const PaymentStatus = () => {
                               >
                                 Actions
                               </button>
-                              <div className="dropdown-menu" aria-labelledby={`dropdown-${index}`}>
+                              <div
+                                className="dropdown-menu"
+                                aria-labelledby={`dropdown-${index}`}
+                              >
                                 {matatu.actions.map((action, actionIndex) => (
-                                  <button key={actionIndex} className="dropdown-item" type="button">
+                                  <button
+                                    key={actionIndex}
+                                    className="dropdown-item"
+                                    type="button"
+                                  >
                                     {action}
                                   </button>
                                 ))}

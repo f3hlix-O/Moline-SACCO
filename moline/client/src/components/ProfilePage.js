@@ -3,6 +3,7 @@ import "./ProfilePage.css";
 import { Modal, Button } from "react-bootstrap";
 import Swal from "sweetalert2";
 import axiosInstance from "../context/axiosInstance";
+import { streetNames } from "../pages/auth/Register";
 
 const ProfilePage = () => {
   const [userData, setUserData] = useState(null);
@@ -73,7 +74,20 @@ const ProfilePage = () => {
         throw new Error("Failed to update user data");
       }
 
-      setUserData(updatedUserData);
+      // Re-fetch the full profile from the server so we preserve fields
+      // that are not part of the editable form (for example `staff_number`).
+      try {
+        const refreshed = await axiosInstance.get("/matatus/profile");
+        if (refreshed && refreshed.status === 200 && refreshed.data) {
+          setUserData(refreshed.data);
+        } else {
+          setUserData((prev) => ({ ...prev, ...updatedUserData }));
+        }
+      } catch (err) {
+        // Fallback: merge updated fields into existing state
+        setUserData((prev) => ({ ...prev, ...updatedUserData }));
+      }
+
       setEditMode(false);
       setShowModal(false);
 
@@ -173,13 +187,20 @@ const ProfilePage = () => {
                 </div>
                 <div className="col-md-6">
                   {editMode ? (
-                    <input
-                      type="text"
+                    <select
                       name="address"
                       value={updatedUserData.address}
                       onChange={handleInputChange}
                       className="form-control"
-                    />
+                      required
+                    >
+                      <option value="">Select Address</option>
+                      {streetNames.map((s, i) => (
+                        <option key={i} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
                   ) : (
                     <p>{userData.address}</p>
                   )}
@@ -200,6 +221,30 @@ const ProfilePage = () => {
                     />
                   ) : (
                     <p>{userData.national_id}</p>
+                  )}
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-6">
+                  <label>Staff Number</label>
+                </div>
+                <div className="col-md-6">
+                  {editMode ? (
+                    <input
+                      type="text"
+                      name="staff_number"
+                      value={
+                        userData.staff_number ||
+                        `STF${String(userData.user_id).padStart(6, "0")}`
+                      }
+                      readOnly
+                      className="form-control"
+                    />
+                  ) : (
+                    <p>
+                      {userData.staff_number ||
+                        `STF${String(userData.user_id).padStart(6, "0")}`}
+                    </p>
                   )}
                 </div>
               </div>

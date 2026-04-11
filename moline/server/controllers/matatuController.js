@@ -7,12 +7,12 @@ const getMatatus = (req, res) => {
             m.matatu_id, 
             m.number_plate, 
             m.status,
-            driver.first_name AS driver_first_name, 
-            driver.last_name AS driver_last_name,
+      d.full_name AS driver_full_name,
+      d.phone AS driver_phone,
             owner.first_name AS owner_first_name,
             owner.last_name AS owner_last_name
         FROM matatus m
-        LEFT JOIN users driver ON m.driver_id = driver.user_id
+    LEFT JOIN drivers d ON m.matatu_id = d.vehicle_id
         LEFT JOIN users owner ON m.owner_id = owner.user_id
     `;
   pool.query(sql, (error, results) => {
@@ -27,27 +27,28 @@ const getMatatus = (req, res) => {
 const getMatatusForUser = async (req, res) => {
   const userId = req.params.userId || req.userId;
   const { matatu_id } = req.query;
-  console.log("Fetching matatus for user:", userId, "with filter matatu_id:", matatu_id);
+  const filterMsg = matatu_id ? ` with filter matatu_id: ${matatu_id}` : "";
+  console.log(`Fetching matatus for user: ${userId}${filterMsg}`);
   const sql = `
         SELECT 
             m.matatu_id,
             MAX(m.number_plate) AS number_plate,
             MAX(m.status) AS status,
-            MAX(driver.first_name) AS driver_first_name,
-            MAX(driver.last_name) AS driver_last_name,
+        MAX(d.full_name) AS driver_full_name,
+        MAX(d.phone) AS driver_phone,
             MAX(owner.first_name) AS owner_first_name,
             MAX(owner.last_name) AS owner_last_name,
             COALESCE(SUM(s.amount), 0) AS total_savings,
             COALESCE(MAX(l.amount_due), 0) AS loan,
             MAX(i.insurance_expiry) AS insurance_expiry
         FROM matatus m
-        LEFT JOIN users driver ON m.driver_id = driver.user_id
+      LEFT JOIN drivers d ON m.matatu_id = d.vehicle_id
         LEFT JOIN users owner ON m.owner_id = owner.user_id
         LEFT JOIN savings s ON m.matatu_id = s.matatu_id
         LEFT JOIN (
-            SELECT matatu_id, MAX(amount_due) AS amount_due
+            SELECT matatu_id, SUM(amount_due) AS amount_due
             FROM loans
-            WHERE loan_type = 'normal'
+            WHERE loan_type = 'normal' AND status = 'approved'
             GROUP BY matatu_id
         ) l ON m.matatu_id = l.matatu_id
         LEFT JOIN (
@@ -74,7 +75,7 @@ const getMatatusForUser = async (req, res) => {
 };
 
 const updateUserProfile = (req, res) => {
-  const userId = req.userId;
+  const { userId } = req;
   const { first_name, last_name, email, phone, address, national_id } =
     req.body;
 
@@ -123,12 +124,13 @@ const getMatauById = (req, res) => {
 };
 
 const updateMatatu = (req, res) => {
-  const { plate_number, status, insurance_status } = req.body;
+  const { number_plate, plate_number, status, insurance_status } = req.body;
+  const nextNumberPlate = number_plate || plate_number;
   const sql =
-    "UPDATE matatus SET plate_number = ?, status = ?, insurance_status = ?, WHERE matatu_id = ?";
+    "UPDATE matatus SET number_plate = ?, status = ?, insurance_status = ? WHERE matatu_id = ?";
   pool.query(
     sql,
-    [plate_number, status, insurance_status, req.params.id],
+    [nextNumberPlate, status, insurance_status, req.params.id],
     (error, results) => {
       if (error) {
         console.error("Error updating matatu data:", error);
@@ -150,7 +152,7 @@ const deleteMatatu = (req, res) => {
       return res.status(500).json({ error: "Internal server error" });
     }
     if (results.affectedRows === 0) {
-      return res.status(404).json({ error: "Matatu not found" });
+      return res.json({ message: "Matatu already deleted" });
     }
     res.json({ message: "Matatu deleted successfully" });
   });
@@ -185,10 +187,23 @@ const approveMatatu = (req, res) => {
 
 const drivers = (req, res) => {
   const sql = `
-        SELECT u.user_id, u.first_name, u.last_name
-        FROM users u
-        JOIN user_role ur ON u.user_id = ur.user_id
-        WHERE ur.role_id = 200
+    SELECT 
+      d.driver_id,
+      d.owner_id,
+      d.vehicle_id,
+      d.full_name,
+      d.phone,
+      d.national_id,
+      d.license_number,
+      d.license_expiry_date,
+      d.address,
+      d.status,
+      CONCAT_WS(' ', owner.first_name, owner.last_name) AS owner_name,
+      m.number_plate AS current_vehicle
+    FROM drivers d
+    LEFT JOIN users owner ON d.owner_id = owner.user_id
+    LEFT JOIN matatus m ON d.vehicle_id = m.matatu_id
+    ORDER BY d.created_at DESC, d.driver_id DESC
     `;
 
   pool.query(sql, (error, results) => {
@@ -200,19 +215,70 @@ const drivers = (req, res) => {
   });
 };
 
-const assignDriver = (req, res) => {
-  const { driverId } = req.body;
-  const sql = "UPDATE matatus SET driver_id = ? WHERE matatu_id = ?";
-  pool.query(sql, [driverId, req.params.id], (error, results) => {
-    if (error) {
-      console.error("Error assigning driver:", error);
-      return res.status(500).json({ error: "Internal server error" });
+const assignDriver = async (req, res) => {
+  const driverId = Number.parseInt(req.body.driverId, 10);
+  const matatuId = Number.parseInt(req.params.id, 10);
+
+  if (
+    !Number.isInteger(driverId) ||
+    driverId <= 0 ||
+    !Number.isInteger(matatuId) ||
+    matatuId <= 0
+  ) {
+    return res
+      .status(400)
+      .json({ error: "Valid driverId and matatu id are required" });
+  }
+
+  try {
+    const driverRows = await pool.query(
+      "SELECT driver_id, vehicle_id, full_name FROM drivers WHERE driver_id = ? LIMIT 1",
+      [driverId],
+    );
+    if (!driverRows.length) {
+      return res.status(404).json({ error: "Driver not found" });
     }
-    if (results.affectedRows === 0) {
+
+    const vehicleRows = await pool.query(
+      "SELECT matatu_id FROM matatus WHERE matatu_id = ? LIMIT 1",
+      [matatuId],
+    );
+    if (!vehicleRows.length) {
       return res.status(404).json({ error: "Matatu not found" });
     }
-    res.json({ message: "Driver assigned successfully" });
-  });
+
+    const assignedVehicle = await pool.query(
+      "SELECT driver_id FROM drivers WHERE vehicle_id = ? AND driver_id <> ? LIMIT 1",
+      [matatuId, driverId],
+    );
+    if (assignedVehicle.length > 0) {
+      return res
+        .status(409)
+        .json({ error: "This vehicle is already assigned to another driver" });
+    }
+
+    if (
+      driverRows[0].vehicle_id &&
+      Number(driverRows[0].vehicle_id) === matatuId
+    ) {
+      return res.json({ message: "Driver already assigned to this vehicle" });
+    }
+
+    await pool.query("UPDATE drivers SET vehicle_id = ? WHERE driver_id = ?", [
+      matatuId,
+      driverId,
+    ]);
+
+    return res.json({
+      message: driverRows[0].vehicle_id
+        ? "Driver reassigned successfully"
+        : "Driver assigned successfully",
+      driver_name: driverRows[0].full_name,
+    });
+  } catch (error) {
+    console.error("Error assigning driver:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 const getRoutes = (req, res) => {
@@ -254,12 +320,12 @@ const documents = async (req, res) => {
             m.matatu_id, 
             m.number_plate, 
             m.status,
-            driver.first_name AS driver_first_name, 
-            driver.last_name AS driver_last_name,
+        d.full_name AS driver_full_name,
+        d.phone AS driver_phone,
             owner.first_name AS owner_first_name,
             owner.last_name AS owner_last_name
         FROM matatus m
-        LEFT JOIN users driver ON m.driver_id = driver.user_id
+      LEFT JOIN drivers d ON m.matatu_id = d.vehicle_id
         LEFT JOIN users owner ON m.owner_id = owner.user_id
     `;
   pool.query(sql, async (error, results) => {
@@ -307,7 +373,7 @@ const documents = async (req, res) => {
 };
 
 const registerVehicle = async (req, res) => {
-  const userId = req.userId;
+  const { userId } = req;
 
   if (!userId) {
     return res.status(401).json({ error: "Authorization header is missing" });
@@ -386,7 +452,7 @@ const registerVehicle = async (req, res) => {
 };
 
 const getUserById = (req, res) => {
-  const userId = req.userId;
+  const { userId } = req;
 
   if (!userId) {
     res.status(400).json({ error: "unauthorized" });
@@ -404,13 +470,37 @@ const getUserById = (req, res) => {
       res.status(404).json({ error: "User not found" });
       return;
     }
-    res.json(results[0]);
+    // Ensure the response includes a staff_number (compute if DB column missing)
+    const user = results[0];
+    if (!user.staff_number) {
+      user.staff_number = `STF${String(userId).padStart(6, "0")}`;
+    }
+    res.json(user);
   });
 };
 const pendingLoans = (req, res) => {
-  const sql = "SELECT * FROM loans WHERE amount_issued = 0";
-  pool.query(sql, (error, results) => {
+  // Return only pending applications (or amount_issued = 0 for older schemas).
+  // Avoid including already approved loans in the admin pending list.
+  const sqlWithStatus =
+    "SELECT loan_id, user_id, loan_type, amount_applied, matatu_id, status, amount_issued, amount_due, rejection_reason FROM loans WHERE status IN ('pending', 'approved', 'disapproved') OR amount_issued = 0";
+  pool.query(sqlWithStatus, (error, results) => {
     if (error) {
+      // If schema lacks `status` column, fall back to older query
+      if (
+        error.code === "ER_BAD_FIELD_ERROR" ||
+        /status/.test(error.message || "")
+      ) {
+        const fallback = "SELECT * FROM loans WHERE amount_issued = 0";
+        pool.query(fallback, (err2, results2) => {
+          if (err2) {
+            console.error("Error fetching pending loans (fallback):", err2);
+            res.status(500).json({ error: "Error fetching pending loans" });
+            return;
+          }
+          res.json(results2);
+        });
+        return;
+      }
       console.error("Error fetching pending loans:", error);
       res.status(500).json({ error: "Error fetching pending loans" });
       return;

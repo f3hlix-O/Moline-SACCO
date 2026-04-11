@@ -15,6 +15,24 @@ import { format } from "date-fns";
 import axiosInstance from "../../context/axiosInstance";
 import { getUserDetails } from "./fleet";
 
+// Normalize Kenyan phone numbers to international format without plus
+// Returns normalized string like '254712345678' or null if invalid
+const normalizeKenyanPhoneNumber = (raw) => {
+  if (!raw || typeof raw !== "string") return null;
+  let s = raw.trim();
+  // remove spaces, parentheses and dashes
+  s = s.replace(/[\s()\-]/g, "");
+  // strip leading + if present
+  if (s.startsWith("+")) s = s.slice(1);
+  // must be digits now
+  if (!/^\d+$/.test(s)) return null;
+  // local formats: 07xxxxxxxx or 01xxxxxxxx
+  if (/^0(7|1)\d{8}$/.test(s)) return `254${s.slice(1)}`;
+  // international without plus: 2547xxxxxxxx or 2541xxxxxxxx
+  if (/^254(7|1)\d{8}$/.test(s)) return s;
+  return null;
+};
+
 function VehicleOwnerDashboard({ onAssignDriver }) {
   const [ownerInfo, setOwnerInfo] = useState(null);
   const [error, setError] = useState(null);
@@ -23,8 +41,10 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
     firstName: "",
     lastName: "",
     phone: "",
+    nationalId: "",
+    licenseNumber: "",
+    licenseExpiryDate: "",
     address: "",
-    driverLicenseNumber: "",
   });
   const [currentMatatuId, setCurrentMatatuId] = useState(null);
   const [expandedCardId, setExpandedCardId] = useState(null);
@@ -65,8 +85,10 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
       "firstName",
       "lastName",
       "phone",
+      "nationalId",
+      "licenseNumber",
+      "licenseExpiryDate",
       "address",
-      "driverLicenseNumber",
     ];
     for (const field of requiredFields) {
       if (!driver[field] || driver[field].toString().trim() === "") {
@@ -77,31 +99,34 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
 
     // Map frontend driver object to backend expected field names
     const payload = {
-      // backend expects matatu id in the URL param, but include for clarity
-      matatuId,
-      first_name: driver.firstName,
-      last_name: driver.lastName,
+      vehicle_id: matatuId,
+      full_name: `${driver.firstName} ${driver.lastName}`.trim(),
       phone: driver.phone,
+      national_id: driver.nationalId,
+      license_number: driver.licenseNumber,
+      license_expiry_date: driver.licenseExpiryDate,
       address: driver.address,
-      driver_license_number: driver.driverLicenseNumber,
     };
 
     console.log("Sending driver assignment payload:", payload);
 
     try {
-      // Exact backend route is POST /matatus/:id/assignDriver
-      const response = await axiosInstance.post(
-        `/matatus/${matatuId}/assignDriver`,
-        payload,
-      );
+      const response = await axiosInstance.post("/drivers", payload);
 
-      if (response.status === 200) {
+      console.log("Driver create response status:", response.status);
+      console.log("Driver create response body:", response.data);
+
+      if (
+        response.status >= 200 &&
+        response.status < 300 &&
+        response.data?.success !== false
+      ) {
         Swal.fire({
           icon: "success",
-          title: "Driver Assigned",
+          title: "Driver assigned successfully",
           text:
             response.data?.message ||
-            "The driver has been successfully assigned.",
+            "The driver has been successfully registered.",
           toast: true,
           position: "top-end",
           showConfirmButton: false,
@@ -110,12 +135,22 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
         });
         fetchOwnerInfo();
         setShowAssignDriver(false);
+        setDriver({
+          firstName: "",
+          lastName: "",
+          phone: "",
+          nationalId: "",
+          licenseNumber: "",
+          licenseExpiryDate: "",
+          address: "",
+        });
       } else {
         Swal.fire({
           icon: "error",
-          title: "Assignment Failed",
+          title: "Registration Failed",
           text:
-            response.data?.error || "There was an error assigning the driver.",
+            response.data?.error ||
+            "There was an error registering the driver.",
           toast: true,
           position: "top-end",
           showConfirmButton: false,
@@ -128,7 +163,7 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
       const serverMsg =
         error.response?.data?.error ||
         error.message ||
-        "There was an error assigning the driver.";
+        "There was an error registering the driver.";
       Swal.fire({
         icon: "error",
         title: "Assignment Failed",
@@ -144,6 +179,15 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
 
   const openAssignDriverModal = (matatuId) => {
     setCurrentMatatuId(matatuId);
+    setDriver({
+      firstName: "",
+      lastName: "",
+      phone: "",
+      nationalId: "",
+      licenseNumber: "",
+      licenseExpiryDate: "",
+      address: "",
+    });
     setShowAssignDriver(true);
   };
 
@@ -175,8 +219,8 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
             return null;
           }
 
-          const phoneNumberPattern = /^07\d{8}$/;
-          if (!phoneNumberPattern.test(phoneNumber)) {
+          const normalized = normalizeKenyanPhoneNumber(phoneNumber);
+          if (!normalized) {
             Swal.showValidationMessage("Invalid phone number");
             return null;
           }
@@ -186,7 +230,8 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
             return null;
           }
 
-          return [phoneNumber, amount];
+          // return normalized phone number so backend receives consistent format
+          return [normalized, amount];
         },
       });
 
@@ -262,7 +307,7 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
   };
 
   return (
-    <div className="content-wrapper">
+    <div className="page-content">
       <section className="content-header">
         <div className="container-fluid">
           <div className="row mb-2">
@@ -331,7 +376,7 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
                               />
                               Make Daily Remittance
                             </Button>
-                            {!matatu.driver_first_name && (
+                            {!matatu.driver_full_name && (
                               <Button
                                 variant="warning"
                                 className="ms-2"
@@ -352,9 +397,7 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
                           <div className="mt-3">
                             <div>
                               <strong>Driver:</strong>{" "}
-                              {matatu.driver_first_name
-                                ? `${matatu.driver_first_name} ${matatu.driver_last_name}`
-                                : "Not Assigned"}
+                              {matatu.driver_full_name || "Unassigned"}
                             </div>
                             <div>
                               <strong>Savings:</strong> KES{" "}
@@ -426,6 +469,35 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
               />
             </Form.Group>
             <Form.Group>
+              <Form.Label>National ID</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter National ID"
+                name="nationalId"
+                value={driver.nationalId}
+                onChange={handleDriverChange}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>License Number</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter License Number"
+                name="licenseNumber"
+                value={driver.licenseNumber}
+                onChange={handleDriverChange}
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>License Expiry Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="licenseExpiryDate"
+                value={driver.licenseExpiryDate}
+                onChange={handleDriverChange}
+              />
+            </Form.Group>
+            <Form.Group>
               <Form.Label>Address</Form.Label>
               <Form.Select
                 name="address"
@@ -439,16 +511,6 @@ function VehicleOwnerDashboard({ onAssignDriver }) {
                   </option>
                 ))}
               </Form.Select>
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Driver License Number</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter Driver License Number"
-                name="driverLicenseNumber"
-                value={driver.driverLicenseNumber}
-                onChange={handleDriverChange}
-              />
             </Form.Group>
           </Form>
         </Modal.Body>

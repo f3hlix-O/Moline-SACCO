@@ -6,6 +6,21 @@ const secretKey = "Vv2N9SCG8RncrDGvfOYlFkaRpm25MA3mRaSCtjPcke4=";
 const { sendWelcomeEmail, sendResetPasswordEmail } = require("../utils/mailer");
 const dotenv = require("dotenv");
 
+// Helper to generate a stable staff number for a user (computed if DB column missing)
+const generateStaffNumber = (userId) => `STF${String(userId).padStart(6, "0")}`;
+
+const removeStaffFromRoles = (rolesValue) => {
+  if (!rolesValue) {
+    return rolesValue;
+  }
+
+  return String(rolesValue)
+    .split(",")
+    .map((role) => role.trim())
+    .filter((role) => role && role.toLowerCase() !== "staff")
+    .join(", ");
+};
+
 const getAllUsers = (req, res) => {
   pool.query("SELECT * FROM Users", (error, results) => {
     if (error) throw error;
@@ -116,6 +131,26 @@ const signup = async (req, res) => {
     const roleValues = [userId, 203];
     await pool.query(sqlInsertUserRole, roleValues);
 
+    // Persist staff number if the DB has the column; otherwise the API will
+    // compute a stable staff number when returning user data.
+    try {
+      const colCheck = await pool.query(
+        "SHOW COLUMNS FROM Users LIKE 'staff_number'",
+      );
+      if (colCheck && colCheck.length > 0) {
+        const staffNumber = generateStaffNumber(userId);
+        await pool.query(
+          "UPDATE Users SET staff_number = ? WHERE user_id = ?",
+          [staffNumber, userId],
+        );
+      }
+    } catch (e) {
+      console.warn(
+        "Could not set staff_number column (may not exist):",
+        e.message || e,
+      );
+    }
+
     return res.json({
       message: "User signed up successfully and role assigned",
       userId,
@@ -153,6 +188,7 @@ const login = (req, res) => {
           email: user.email,
           status: user.status,
           role_id: user.role_id,
+          staff_number: user.staff_number || generateStaffNumber(user.user_id),
         };
 
         const token = jwt.sign(userResponse, secretKey, { expiresIn: "12h" });
@@ -163,7 +199,7 @@ const login = (req, res) => {
 };
 
 const getUserById = (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   const sql = `
         SELECT 
             u.*, 
@@ -189,12 +225,15 @@ const getUserById = (req, res) => {
       res.status(404).json({ error: "User not found" });
       return;
     }
-    res.json(results[0]);
+    const user = results[0];
+    user.staff_number = user.staff_number || generateStaffNumber(user.user_id);
+    user.roles = removeStaffFromRoles(user.roles);
+    res.json(user);
   });
 };
 
 const getUserDetails = (req, res) => {
-  const userId = req.userId;
+  const { userId } = req;
   const sql = `
         SELECT 
             u.*, 
@@ -220,12 +259,62 @@ const getUserDetails = (req, res) => {
       res.status(404).json({ error: "User not found" });
       return;
     }
-    res.json(results[0]);
+    const user = results[0];
+    user.staff_number = user.staff_number || generateStaffNumber(user.user_id);
+    user.roles = removeStaffFromRoles(user.roles);
+    res.json(user);
   });
 };
 
+// Lookup user by staff number (supports persisted column or computed STF<id> format)
+const getUserByStaffNumber = async (req, res) => {
+  const { staffNumber } = req.params;
+  if (!staffNumber)
+    return res.status(400).json({ error: "staffNumber required" });
+  try {
+    // If column exists, try direct lookup
+    try {
+      const colCheck = await pool.query(
+        "SHOW COLUMNS FROM Users LIKE 'staff_number'",
+      );
+      if (colCheck && colCheck.length > 0) {
+        const rows = await pool.query(
+          "SELECT user_id, first_name, last_name, staff_number FROM Users WHERE staff_number = ? LIMIT 1",
+          [staffNumber],
+        );
+        if (rows && rows.length > 0) return res.json(rows[0]);
+      }
+    } catch (e) {
+      // ignore and fallback to computed format
+    }
+
+    // Fallback parse STF000123 -> user_id 123
+    const match = /^STF0*(\d+)$/.exec(staffNumber);
+    let userId = null;
+    if (match) userId = parseInt(match[1], 10);
+    else if (/^\d+$/.test(staffNumber)) userId = parseInt(staffNumber, 10);
+
+    if (userId !== null) {
+      const rows = await pool.query(
+        "SELECT user_id, first_name, last_name FROM Users WHERE user_id = ? LIMIT 1",
+        [userId],
+      );
+      if (rows && rows.length > 0) {
+        const user = rows[0];
+        user.staff_number = generateStaffNumber(user.user_id);
+        return res.json(user);
+      }
+    }
+
+    return res.status(404).json({ error: "User not found" });
+  } catch (err) {
+    console.error("Error in getUserByStaffNumber:", err);
+    return res.status(500).json({ error: "An unexpected error occurred" });
+  }
+};
+
 const updateUser = (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   const { first_name, last_name, email } = req.body;
   const sql =
     "UPDATE Users SET first_name = ?, last_name = ?, email = ? WHERE user_id = ?";
@@ -240,7 +329,7 @@ const updateUser = (req, res) => {
 };
 
 const resetPassword = (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   const defaultPassword = "newPassword123";
   const sql = "UPDATE Users SET password = ? WHERE user_id = ?";
   pool.query(sql, [defaultPassword, userId], (error, results) => {
@@ -363,7 +452,7 @@ const resetPasswordConfirm = async (req, res) => {
   }
 };
 const deleteUser = (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
 
   const sqlDeleteUserRole = "DELETE FROM user_role WHERE user_id = ?";
   const sqlDeleteUser = "DELETE FROM Users WHERE user_id = ?";
@@ -536,5 +625,6 @@ module.exports = {
   deleteUser,
   requestSalaryAdvance,
   getUserDetails,
+  getUserByStaffNumber,
   createSupportTicket,
 };

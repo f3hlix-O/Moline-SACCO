@@ -99,6 +99,42 @@ const sendDisapprovalEmail = async (email, firstName) => {
   }
 };
 
+const sendWithdrawalStatusEmail = async (
+  email,
+  firstName,
+  status,
+  withdrawalId,
+  reason,
+) => {
+  try {
+    const normalizedStatus = String(status || "").toLowerCase();
+    const subjectPrefix =
+      normalizedStatus === "approved" ? "Approved" : "Rejected";
+    const statusMessage =
+      normalizedStatus === "approved"
+        ? "has been approved and your account has been closed"
+        : "has been rejected";
+
+    await sendEmail({
+      to: email,
+      subject: `Withdrawal Request ${subjectPrefix} - Moline Matatu SACCO`,
+      html: `
+            <div style="font-family: Arial, sans-serif; color: #1f2937;">
+              <h2>Hello ${firstName || "Member"},</h2>
+              <p>Your withdrawal request <strong>#${withdrawalId}</strong> ${statusMessage}.</p>
+              ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}
+              ${normalizedStatus === "approved" ? "<p>Your user credentials have been removed from the system. You will need to register again to access the SACCO system in the future.</p>" : ""}
+              <p>If you need more details, please contact the admin office.</p>
+              <br/>
+              <p>Regards,<br/>Moline Matatu SACCO Team</p>
+            </div>
+        `,
+    });
+  } catch (err) {
+    console.error("Error sending withdrawal status email:", err);
+  }
+};
+
 //  3. Welcome Email (After Registration)
 const sendWelcomeEmail = async (email, firstName) => {
   try {
@@ -160,6 +196,52 @@ const sendPaymentConfirmationEmail = async (email, firstName) => {
   }
 };
 
+//  5. Loan Approved Email
+const sendLoanApprovedEmail = async (email, firstName, amount, loanId) => {
+  try {
+    await sendEmail({
+      to: email,
+      subject: "Loan Approved - Moline Matatu SACCO",
+      html: `
+                <h2>Hello ${firstName},</h2>
+                <p>Your loan application (ID: <strong>${loanId}</strong>) has been <strong>approved</strong>.</p>
+                <p>Amount issued: <strong>KES ${amount}</strong></p>
+                <p>The issued amount has been reflected in your account/savings where applicable.</p>
+                <br/>
+                <p>Regards,<br/>Moline Matatu SACCO Team</p>
+            `,
+    });
+  } catch (err) {
+    console.error("Error sending loan approved email:", err);
+  }
+};
+
+//  6. Loan Disapproved Email
+const sendLoanDisapprovedEmail = async (
+  email,
+  firstName,
+  amount,
+  loanId,
+  reason,
+) => {
+  try {
+    await sendEmail({
+      to: email,
+      subject: "Loan Application Disapproved - Moline Matatu SACCO",
+      html: `
+                <h2>Hello ${firstName},</h2>
+                <p>We regret to inform you that your loan application (ID: <strong>${loanId}</strong>) has been <strong>disapproved</strong>.</p>
+                ${reason ? `<p>Reason: ${reason}</p>` : ""}
+                <p>If you need clarification, please contact support.</p>
+                <br/>
+                <p>Regards,<br/>Moline Matatu SACCO Team</p>
+            `,
+    });
+  } catch (err) {
+    console.error("Error sending loan disapproved email:", err);
+  }
+};
+
 // Send reset password email with provided reset link
 const sendResetPasswordEmail = async (email, resetLink) => {
   return sendEmail({
@@ -192,8 +274,11 @@ const shareholderCapitalPaymentEmail = async (email, firstName) => {
 module.exports = {
   sendApprovalEmail,
   sendDisapprovalEmail,
+  sendWithdrawalStatusEmail,
   sendWelcomeEmail,
   sendPaymentConfirmationEmail,
   shareholderCapitalPaymentEmail,
   sendResetPasswordEmail,
+  sendLoanApprovedEmail,
+  sendLoanDisapprovedEmail,
 };

@@ -8,23 +8,37 @@ const fetchAllUsers = async () => {
     return response.data;
   } catch (error) {
     console.error("Error fetching user data:", error);
+    return [];
   }
 };
 
-const fetchUserRoles = async (userIds) => {
+const fetchUserRoleDetails = async (userIds) => {
   try {
-    const response = await axiosInstance.post("/roles/user-roles", { userIds });
-    const data = response.data;
+    const { data = [] } = await axiosInstance.post("/roles/user-roles", {
+      userIds,
+    });
     return data.reduce((acc, role) => {
       if (!acc[role.user_id]) {
         acc[role.user_id] = [];
       }
-      acc[role.user_id].push(role.role_name);
+      acc[role.user_id].push({
+        role_id: role.role_id,
+        role_name: role.role_name,
+      });
       return acc;
     }, {});
   } catch (error) {
     console.error("Error fetching user roles:", error);
+    return {};
   }
+};
+
+const fetchUserRoles = async (userIds) => {
+  const roleDetails = await fetchUserRoleDetails(userIds);
+  return Object.entries(roleDetails).reduce((acc, [userId, roles]) => {
+    acc[userId] = roles.map((role) => role.role_name);
+    return acc;
+  }, {});
 };
 
 const fetchPendingUsers = async () => {
@@ -38,8 +52,7 @@ const fetchPendingUsers = async () => {
 
 const fetchApprovedUsers = async () => {
   try {
-    const response = await axiosInstance.get("/admin/users-approved");
-    const data = response.data;
+    const { data = [] } = await axiosInstance.get("/admin/users-approved");
     await fetchUserRoles(data.map((user) => user.user_id));
     return data;
   } catch (error) {
@@ -47,10 +60,82 @@ const fetchApprovedUsers = async () => {
   }
 };
 
+const fetchWithdrawalRequests = async () => {
+  try {
+    const { data = [] } = await axiosInstance.get("/admin/withdrawals");
+    return data;
+  } catch (error) {
+    console.error("Error fetching withdrawal requests:", error);
+    return [];
+  }
+};
+
+const updateWithdrawalStatus = async (
+  withdrawalId,
+  status,
+  refreshWithdrawals = null,
+) => {
+  const normalizedStatus = String(status || "").toLowerCase();
+  const prettyStatus = normalizedStatus === "approved" ? "approve" : "reject";
+
+  const confirmation = await Swal.fire({
+    title: `Are you sure?`,
+    text: `Do you want to ${prettyStatus} this withdrawal request?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: `Yes, ${prettyStatus} it!`,
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+  });
+
+  if (!confirmation.isConfirmed) {
+    return false;
+  }
+
+  try {
+    const response = await axiosInstance.patch(
+      `/admin/withdrawals/${withdrawalId}/status`,
+      { status: normalizedStatus },
+    );
+
+    if (response.status !== 200) {
+      throw new Error("Failed to update withdrawal status");
+    }
+
+    Swal.fire({
+      icon: "success",
+      title: `Withdrawal ${normalizedStatus}`,
+      text:
+        response.data?.message || `Withdrawal has been ${normalizedStatus}.`,
+    });
+
+    if (typeof refreshWithdrawals === "function") {
+      await refreshWithdrawals();
+    }
+
+    return response.data?.withdrawal || true;
+  } catch (error) {
+    console.error("Error updating withdrawal status:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text:
+        error.response?.data?.error ||
+        "Failed to update withdrawal status. Please try again later.",
+    });
+    return false;
+  }
+};
+
 const fetchRoles = async () => {
   try {
     const response = await axiosInstance.get("/roles");
-    return response.data;
+    return (response.data || []).filter(
+      (role) =>
+        !["driver", "conductor", "staff"].includes(
+          String(role.role_name || "").toLowerCase(),
+        ),
+    );
   } catch (error) {
     console.error("Error fetching roles:", error);
     return [];
@@ -84,14 +169,14 @@ const editUser = async (userId, setApprovedUsers) => {
     if (formValues) {
       const updateResponse = await axiosInstance.put(
         `/users/${userId}/update`,
-        formValues
+        formValues,
       );
 
       if (updateResponse.status >= 200 && updateResponse.status < 300) {
         Swal.fire(
           "Changes Saved",
           "User information updated successfully",
-          "success"
+          "success",
         );
       } else {
         throw new Error("Failed to update user information");
@@ -197,7 +282,7 @@ const deleteUser = async (userId, setApprovedUsers) => {
   }
 };
 
-const approveUser = async (userId, email, setPendingUsers) => {
+const approveUser = async (userId, email, refreshUsers = null) => {
   const result = await Swal.fire({
     title: "Are you sure?",
     text: `Do you want to approve ${email}?`,
@@ -217,11 +302,12 @@ const approveUser = async (userId, email, setPendingUsers) => {
       if (response.status === 200) {
         Swal.fire({
           title: "Approved!",
-          text: `User ${email} has been approved.`,
+          text: response.data?.message || `User ${email} has been approved.`,
           icon: "success",
         });
-        const pendingUsers = await fetchPendingUsers();
-        setPendingUsers(pendingUsers);
+        if (typeof refreshUsers === "function") {
+          await refreshUsers();
+        }
       } else {
         throw new Error("Failed to approve user");
       }
@@ -236,7 +322,7 @@ const approveUser = async (userId, email, setPendingUsers) => {
   }
 };
 
-const disapproveUser = async (userId, email, setPendingUsers) => {
+const disapproveUser = async (userId, email, refreshUsers = null) => {
   const result = await Swal.fire({
     title: "Are you sure?",
     text: `Do you want to disapprove ${email}?`,
@@ -255,12 +341,15 @@ const disapproveUser = async (userId, email, setPendingUsers) => {
       });
       if (response.status === 200) {
         Swal.fire({
-          title: "Disapproved!",
-          text: `User ${email} has been disapproved.`,
+          title: "Moved to Pending!",
+          text:
+            response.data?.message ||
+            `User ${email} has been moved back to pending.`,
           icon: "success",
         });
-        const pendingUsers = await fetchPendingUsers();
-        setPendingUsers(pendingUsers);
+        if (typeof refreshUsers === "function") {
+          await refreshUsers();
+        }
       } else {
         throw new Error("Failed to disapprove user");
       }
@@ -275,14 +364,20 @@ const disapproveUser = async (userId, email, setPendingUsers) => {
   }
 };
 
-const assignRole = async (userId, roleId, position, setUserRoles) => {
-  if (!roleId || (roleId === "staff" && !position)) {
+const assignRole = async (
+  userId,
+  roleId,
+  position = null,
+  setUserRoles = null,
+  refreshRoles = null,
+) => {
+  if (!userId || !roleId) {
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: "Please select a role and position if the role is staff.",
+      text: "Please select a valid user and role.",
     });
-    return;
+    return false;
   }
 
   try {
@@ -290,30 +385,86 @@ const assignRole = async (userId, roleId, position, setUserRoles) => {
       roleId,
       position,
     });
-    if (response.status !== 200) {
-      const errorMessage = await response.data;
-      throw new Error(
-        `HTTP error! Status: ${response.status}, Message: ${errorMessage}`
-      );
+    if (response.status !== 200 || response.data?.success === false) {
+      throw new Error(response.data?.error || "Failed to assign role");
     }
     Swal.fire({
       icon: "success",
       title: "Role Assigned",
-      text: "The role has been assigned successfully.",
+      text:
+        response.data?.message || "The role has been assigned successfully.",
     });
 
-    const newRoles = await fetchUserRoles([userId]);
-    setUserRoles((prevUserRoles) => ({
-      ...prevUserRoles,
-      [userId]: newRoles[userId],
-    }));
+    if (typeof refreshRoles === "function") {
+      await refreshRoles();
+      return;
+    }
+
+    if (typeof setUserRoles === "function") {
+      const newRoles = await fetchUserRoleDetails([userId]);
+      setUserRoles((prevUserRoles) => ({
+        ...prevUserRoles,
+        [userId]: newRoles[userId],
+      }));
+    }
+    return true;
   } catch (error) {
     console.error("Error assigning role:", error);
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: "Failed to assign the role. Please try again later.",
+      text:
+        error.response?.data?.error ||
+        "Failed to assign the role. Please try again later.",
     });
+    return false;
+  }
+};
+
+const unassignRole = async (userId, roleId, refreshRoles = null) => {
+  const confirmation = await Swal.fire({
+    title: "Remove role?",
+    text: "Are you sure you want to remove this role from this user?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, remove it",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+  });
+
+  if (!confirmation.isConfirmed) {
+    return false;
+  }
+
+  try {
+    const response = await axiosInstance.post(`/roles/${userId}/unassignRole`, {
+      roleId,
+    });
+
+    if (response.data?.success === false) {
+      throw new Error(response.data?.error || "Failed to remove the role");
+    }
+
+    Swal.fire({
+      icon: "success",
+      title: "Role Removed",
+      text: response.data?.message || "The role has been removed successfully.",
+    });
+
+    if (typeof refreshRoles === "function") {
+      await refreshRoles();
+    }
+    return true;
+  } catch (error) {
+    console.error("Error removing role:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text:
+        error.response?.data?.error ||
+        "Failed to remove the role. Please try again later.",
+    });
+    return false;
   }
 };
 
@@ -438,7 +589,9 @@ const handleUserRegistration = async (formData) => {
       Swal.fire({
         icon: "error",
         title: "Signup Failed",
-        text: response.data.error || "There was an error signing up. Please try again later.",
+        text:
+          response.data.error ||
+          "There was an error signing up. Please try again later.",
         toast: true,
         position: "top-end",
         showConfirmButton: false,
@@ -465,8 +618,11 @@ const handleUserRegistration = async (formData) => {
 export {
   fetchAllUsers,
   fetchUserRoles,
+  fetchUserRoleDetails,
   fetchPendingUsers,
   fetchApprovedUsers,
+  fetchWithdrawalRequests,
+  updateWithdrawalStatus,
   fetchRoles,
   editUser,
   resetPassword,
@@ -474,6 +630,7 @@ export {
   approveUser,
   disapproveUser,
   assignRole,
+  unassignRole,
   checkEmailExists,
   handleUserRegistration,
 };
