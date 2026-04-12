@@ -4,19 +4,9 @@
    - On small screens sidebar becomes non-fixed and margins reset
 */
 
-:root {
-  --sidebar-width: clamp(200px, 20vw, 250px);
-  --sidebar-collapsed-width: 72px;
-}
-
-body {
-  overflow-x: hidden;
-}
-
 .app-body {
   width: 100%;
   min-height: 100vh;
-  display: flex;
 }
 
 .main-sidebar {
@@ -24,24 +14,21 @@ body {
   top: 0;
   left: 0;
   height: 100vh;
-  width: var(--sidebar-width);
+  width: 250px;
   z-index: 860;
   overflow-y: auto;
-  transition: width 160ms ease, transform 160ms ease;
 }
 
 /* Header and content shifted to the right to make room for fixed sidebar */
 .main-header {
-  margin-left: var(--sidebar-width);
-  min-width: 0;
+  margin-left: 250px;
 }
 
 .content-wrapper,
 .main-footer {
-  margin-left: var(--sidebar-width);
+  margin-left: 250px;
   background: #f4f6f9;
   padding: 20px 16px;
-  min-width: 0;
 }
 
 .content-card {
@@ -51,20 +38,7 @@ body {
   padding: 16px;
 }
 
-body.sidebar-collapse .main-sidebar {
-  width: var(--sidebar-collapsed-width);
-}
-
-body.sidebar-collapse .main-header {
-  margin-left: var(--sidebar-collapsed-width);
-}
-
-body.sidebar-collapse .content-wrapper,
-body.sidebar-collapse .main-footer {
-  margin-left: var(--sidebar-collapsed-width);
-}
-
-@media (max-width: 991.98px) {
+@media (max-width: 767.98px) {
   .main-sidebar {
     position: relative !important;
     width: 100%;
