@@ -59,6 +59,11 @@ function Sidenav() {
           to: "/admin/users",
           icon: "fas fa-file-invoice",
         },
+        {
+          label: "Support Requests",
+          to: "/admin/support-tickets",
+          icon: "fas fa-life-ring",
+        },
       ],
     },
     {

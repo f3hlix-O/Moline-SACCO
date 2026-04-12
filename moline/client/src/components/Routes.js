@@ -38,6 +38,7 @@ import UpdateStaffDetails from "../staff/updateStaff";
 import ContactSupport from "../users/VehicleOwner/contactSupport";
 import HelpPage from "../pages/HelpPage";
 import Savings from "../admin/pages/Savings";
+import SupportTickets from "../admin/pages/SupportTickets";
 
 // Define Admin layout
 const AdminLayout = () => (
@@ -61,6 +62,7 @@ const AdminLayout = () => (
       <Route path="reports/compliance" element={<ComplianceReport />} />
       <Route path="loans" element={<AdminLoans />} />
       <Route path="savings" element={<Savings />} />
+      <Route path="support-tickets" element={<SupportTickets />} />
       <Route path="routes" element={<RouteManagement />} />
     </Routes>
     <Footer />

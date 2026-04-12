@@ -258,6 +258,47 @@ const getAllUserSavings = (req, res) => {
   });
 };
 
+const getSupportTickets = (req, res) => {
+  const sql = `
+        SELECT
+            st.id,
+            st.user_id,
+            COALESCE(CONCAT(u.first_name, ' ', u.last_name), 'Unknown User') AS user_name,
+            u.email,
+            u.phone,
+            st.subject,
+            st.category,
+            st.priority,
+            st.message,
+            st.status,
+            st.attachment,
+            st.created_at,
+            st.updated_at
+        FROM support_tickets st
+        LEFT JOIN Users u ON st.user_id = u.user_id
+        ORDER BY st.created_at DESC, st.id DESC
+    `;
+
+  pool.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching support tickets:", err);
+      res
+        .status(500)
+        .json({ error: "An error occurred while fetching support tickets" });
+      return;
+    }
+
+    const supportTickets = results.map((ticket) => ({
+      ...ticket,
+      attachment: ticket.attachment
+        ? `http://localhost:5000/uploads/${ticket.attachment}`
+        : null,
+    }));
+
+    res.json(supportTickets);
+  });
+};
+
 module.exports = {
   getApprovedUsers,
   getPendingUsers,
@@ -265,4 +306,5 @@ module.exports = {
   disapproveUser,
   adminLogin,
   getAllUserSavings,
+  getSupportTickets,
 };
